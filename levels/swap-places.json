@@ -1,0 +1,21 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "swap-places",
+  "name": "Swap places",
+  "author": "yeger00",
+  "notes": "Teaches the foot-to-foot connection: jump past each other so Black ends up on top, then walk to the stacked exits together.",
+  "map": [
+    "##########",
+    "#        #",
+    "#        #",
+    "####     #",
+    "# 2     X#",
+    "#       Y#",
+    "# 1      #",
+    "####     #",
+    "#        #",
+    "#        #",
+    "##########"
+  ]
+}

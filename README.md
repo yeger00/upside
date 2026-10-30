@@ -51,12 +51,13 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 | 3 | Special delivery | White passes a crate down; Black bumps it and it turns black |
 | 4 | Stepping stones | Floating blocks over thorns; White's button opens Black's door |
 | 5 | Round trip | A two-way relay: White carries the white crate back to hold Black's last door |
-| 6 | Meet in the middle | Foot-to-foot float across the thorns |
-| 7 | Your turn to climb | Level 3 turned 180°, so White climbs and bumps |
-| 8 | The ladder | Climb past each other to get crossed, then float |
-| 9 | Busy doors | Four doors, two crates, two sockets; order matters |
-| 10 | The gate | Ladder, plus two crates holding a two-part gate open |
-| 11 | The long way home | The white crate travels down to Black, back up, and all the way to White's start |
+| 6 | Swap places | Jump past each other so Black lands on White's feet; teaches connecting |
+| 7 | Meet in the middle | Foot-to-foot float across the thorns |
+| 8 | Your turn to climb | Level 3 turned 180°, so White climbs and bumps |
+| 9 | The ladder | Climb past each other to get crossed, then float |
+| 10 | Busy doors | Four doors, two crates, two sockets; order matters |
+| 11 | The gate | Ladder, plus two crates holding a two-part gate open |
+| 12 | The long way home | The white crate travels down to Black, back up, and all the way to White's start |
 
 ## Level files
 
