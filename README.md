@@ -11,7 +11,9 @@ The whole game is one self-contained file, `index.html`, with no build step and 
 
 ## Play
 
-Open `index.html` in Chrome on an Android phone, ideally from a web server (for example GitHub Pages) so fullscreen and keep-screen-awake work.
+**Play online: https://yeger00.github.io/upside/**. Open it in Chrome on an Android phone. Tap ⋮ → *Add to Home screen* for the best fullscreen experience.
+
+Every push to `main` runs the tests and, if they pass, redeploys the site (see `.github/workflows/pages.yml`).
 
 To start, both players hold their own control band.
 
