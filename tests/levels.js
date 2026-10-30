@@ -149,6 +149,66 @@ const { startServer } = require('./server');
     { const cb = climber(S.p1, blackSteps), cw = climber(S.p2, whiteSteps); run(900, () => [cb(), cw()]); }
     run(120, () => [I(toward(S.p1, 5.35)), I(toward(S.p2, 5.35))]);
     floatAcross(); out['10 gate closed blocks'] = !won() && cx(S.p1) < 9;
+
+    // 11 The long way home: the white crate goes down to Black's side, back up, and over to plate a
+    { U.loadById('the-long-way-home'); S.events.length = 0;
+      const idle = I(), W = () => S.crates[0];
+      // on a surface (Black: feet y, White: head y), walk to x then jump in dir; dir 0 = stop there
+      const route = (p, steps, n = 600) => { let dir = 0; run(n, () => {
+        const sv = p.g > 0 ? bot(p) : top(p); let inp = I(loc(p, dir));
+        if (p.grounded) for (const [v, x, d] of steps) if (near(sv, v)) {
+          if (d === 0 || Math.abs(cx(p) - x) > 0.1) inp = I(toward(p, x)); else { dir = d; inp = I(loc(p, d), true); }
+        }
+        return p === S.p1 ? [inp, idle] : [idle, inp]; }); };
+      const hop = (p, x, dir, n) => { let t = 0; return () => {
+        if (t > 0) { t--; return I(loc(p, dir)); }
+        if (Math.abs(cx(p) - x) > 0.1) return I(toward(p, x));
+        t = n; return I(loc(p, dir), true); }; };
+      // White: jump the thorns, hop over the crate, push it back to x~9
+      { const h = hop(S.p2, 6.3, 1, 40); run(90, () => [idle, h()]); }
+      run(60, () => [idle, I(toward(S.p2, 10.2))]);
+      run(8, () => [idle, I(0, true)]); run(70, () => [idle, I(loc(S.p2, 1))]);
+      run(120, () => [idle, I(toward(S.p2, 10.35))]);
+      // Black climbs to the top block and bumps the crate: it turns black and drops onto bar r9
+      route(S.p1, [[13, 1.4, 1], [11, 3.4, 1], [10, 6.4, 1], [9, 10.3, 1], [7, 11.4, -1], [5, 8.4, 0]]);
+      { const h = hop(S.p1, 8.4, 1, 30); run(100, () => [h(), idle]); }
+      out['11 long way: crate dropped to Black'] = W().owner === 1;
+      run(80, () => [I(toward(S.p1, 10.6)), idle]);
+      run(200, () => [I(toward(S.p1, 8.31)), idle]);                               // push it left under block r5
+      // White: running jump back over the thorns, then down: under r2, under r4, under r5
+      run(60, () => [idle, I(toward(S.p2, 12.3))]);
+      { let t = -1; run(140, () => { const p = S.p2;
+          if (t < 0 && cx(p) <= 9.6) t = 70;
+          if (t === 70) { t--; return [idle, I(loc(p, -1), true)]; }
+          if (t > 0) t--;
+          return [idle, I(loc(p, -1))]; }); }
+      route(S.p2, [[1, 4.5, -1], [3, 3.5, 0]], 150);
+      { let jumped = false; run(150, () => { const p = S.p2;                     // walk off r2, jump in the grace period
+          if (!jumped && p.grounded && near(top(p), 3)) return [idle, I(loc(p, 1))];
+          if (!jumped && !p.grounded) { jumped = true; return [idle, I(loc(p, -1), true)]; }
+          if (jumped && p.grounded && near(top(p), 5)) return [idle, I(toward(p, 3.0))];
+          return [idle, I(loc(p, -1))]; }); }
+      route(S.p2, [[5, 3.6, 1], [6, 7.5, 0]], 200);
+      { const h = hop(S.p2, 7.5, 0, 30); run(80, () => [idle, h()]); }            // White bumps it: white again
+      run(120, () => [idle, I(toward(S.p2, 8.35))]);
+      run(250, () => [idle, I(toward(S.p2, 5.0))]);                              // push it off r5; it catches on r4's corner
+      run(150, () => [idle, I(toward(S.p2, 2.6))]);                              // go under r4
+      run(150, () => [idle, I(toward(S.p2, 3.6))]);                              // nudge it free: it rises to the ceiling
+      run(120, () => [idle, I(toward(S.p2, 4.3))]);
+      run(80, () => [idle, I(toward(S.p2, 5.6))]);                               // up to the ceiling, right of the crate
+      run(200, () => [idle, I(toward(S.p2, 3.31))]);                             // push it onto plate a: door A stays open
+      out['11 long way: crate on plate a'] = S.L.plates.find(pl => pl.id === 'a').pressed;
+      run(400, () => [I(toward(S.p1, 1.4)), I(toward(S.p2, 3.31))]);             // Black back down to the floor
+      run(120, () => [I(toward(S.p1, 2.5)), I(toward(S.p2, 3.31))]);             // Black holds plate c: door C opens
+      { const h = hop(S.p2, 6.3, 1, 70); run(110, () => [I(toward(S.p1, 2.5)), h()]); }
+      run(300, () => [I(toward(S.p1, 2.5)), I(toward(S.p2, 14.5))]);             // White to Y
+      run(400, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);            // Black to X
+      out['11 The long way home'] = won(); out['11 pops'] = pops();
+      U.loadById('the-long-way-home'); run(600, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
+      out['11 long way: no teamwork'] = won();
+      U.loadById('the-long-way-home'); run(600, () => [I(toward(S.p1, 14.5)), idle]);
+      out['11 long way: Black alone reaches exit'] = S.p1.atExit;
+    }
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -157,12 +217,13 @@ const { startServer } = require('./server');
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
   const mustPass = ['1 Hello', '2 Relay', '3 Special delivery', '4 Stepping stones', '5 Round trip', '5 Round trip: crate on plate c', '6 Meet in the middle',
-    '7 Your turn to climb', '8 The ladder', '9 Busy doors', '10 The gate',
+    '7 Your turn to climb', '8 The ladder', '9 Busy doors', '10 The gate', '11 The long way home', '11 long way: crate dropped to Black', '11 long way: crate on plate a',
     '4 stones: Black waits at door', '4 stones: White on button, door open', '8 crossed after climb',
     '10 gate open', '10 gate closed blocks'];
-  const mustFail = ['4 solo Black reaches exit', '5 Round trip: no teamwork', '7 solo White (no crate)', '9 no teamwork'];
+  const mustFail = ['4 solo Black reaches exit', '5 Round trip: no teamwork', '7 solo White (no crate)', '9 no teamwork', '11 long way: no teamwork', '11 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
+  if (result['11 pops'] !== 0) bad.push('11 scripted solution should not hit thorns');
   if (result['8 solo Black pops'] < 1) bad.push('8 solo Black should hit thorns');
   if (bad.length) { console.error('FAILED:', bad); process.exitCode = 1; } else console.log('All level checks passed');
   await browser.close();

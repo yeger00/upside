@@ -56,6 +56,7 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 | 8 | The ladder | Climb past each other to get crossed, then float |
 | 9 | Busy doors | Four doors, two crates, two sockets; order matters |
 | 10 | The gate | Ladder, plus two crates holding a two-part gate open |
+| 11 | The long way home | The white crate travels down to Black, back up, and all the way to White's start |
 
 ## Level files
 
