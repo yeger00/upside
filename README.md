@@ -50,11 +50,12 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 | 2 | Relay | Take turns holding plates |
 | 3 | Special delivery | White passes a crate down; Black bumps it and it turns black |
 | 4 | Stepping stones | Floating blocks over thorns; White's button opens Black's door |
-| 5 | Meet in the middle | Foot-to-foot float across the thorns |
-| 6 | Your turn to climb | Level 3 turned 180°, so White climbs and bumps |
-| 7 | The ladder | Climb past each other to get crossed, then float |
-| 8 | Busy doors | Four doors, two crates, two sockets; order matters |
-| 9 | The gate | Ladder, plus two crates holding a two-part gate open |
+| 5 | a | A two-way relay: White carries the white crate back to hold Black's last door |
+| 6 | Meet in the middle | Foot-to-foot float across the thorns |
+| 7 | Your turn to climb | Level 3 turned 180°, so White climbs and bumps |
+| 8 | The ladder | Climb past each other to get crossed, then float |
+| 9 | Busy doors | Four doors, two crates, two sockets; order matters |
+| 10 | The gate | Ladder, plus two crates holding a two-part gate open |
 
 ## Level files
 

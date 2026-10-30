@@ -72,17 +72,37 @@ const { startServer } = require('./server');
     out['4 Stepping stones'] = won(); out['4 pops'] = pops();
     U.loadById('stepping-stones'); run(400, () => [bp4(), I()]); run(300, () => [I(toward(S.p1, 13.5)), I()]); out['4 solo Black reaches exit'] = S.p1.atExit;
 
-    // 5 Meet in the middle
+    // 5 a: two-way relay; White must carry the crate back to plate c
+    U.loadById('a'); S.events.length = 0;
+    run(150, () => [I(toward(S.p1, 6.5)), I()]);                                   // Black on b: door B opens
+    run(200, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 5.5))]);                  // White through B
+    run(150, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 5.5))]);                  // Black on a: door A opens
+    run(150, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 7.5))]);                  // White through A
+    run(8, () => [I(toward(S.p1, 4.5)), I(0, true)]);                              // White jumps straight up first,
+    run(120, () => [I(toward(S.p1, 4.5)), I(-1)]);                                 // then over the crate (not pushing it)
+    run(200, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 3.31))]);                 // push the crate back through A
+    run(150, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 3.31))]);                 // and through B, stopping on plate c
+    out['5 a: crate on plate c'] = S.L.plates.find(pl => pl.id === 'c').pressed;
+    run(200, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 5.5))]);                  // White back through B
+    run(150, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 5.5))]);                  // and through A
+    run(250, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 9.5))]);                  // White holds plate d: door D opens
+    run(300, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 9.5))]);                 // Black through D and C to X
+    run(200, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 10.5))]);                // White to Y
+    out['5 a'] = won(); out['5 pops'] = pops();
+    U.loadById('a'); run(600, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 10.5))]);
+    out['5 a: no teamwork'] = won() || S.p1.atExit || S.p2.atExit;
+
+    // 6 Meet in the middle
     U.loadById('meet-in-the-middle'); { let ph = 0; run(1200, () => { const p1 = S.p1, p2 = S.p2, l = p1.on === p2 && p2.on === p1;
       if (ph === 0 && l) ph = 1; if (ph === 1 && cx(p1) > 11.8) { ph = 2; return [I(0, true), I()]; }
       if (ph === 2) return [I(toward(p1, 12.5)), I(toward(p2, 12.5))]; return [I(1), I(-1)]; }); }
-    out['5 Meet in the middle'] = won();
+    out['6 Meet in the middle'] = won();
 
-    // 6 Your turn to climb (rotated level 3)
+    // 7 Your turn to climb (rotated level 3)
     U.loadById('your-turn-to-climb'); S.events.length = 0;
     run(150, () => [I(), I(toward(S.p2, 12.5))]);
     run(500, () => [I(toward(S.p1, 3.1)), I(toward(S.p2, 12.5))]);
-    out['6 crate x'] = S.crates[0].x.toFixed(2);
+    out['7 crate x'] = S.crates[0].x.toFixed(2);
     run(200, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 12.5))]);
     const wp6 = () => { const p = S.p2; let wm = -1, j = false;
       if (p.grounded && near(top(p), 1) && cx(p) > 11.2 && cx(p) < 11.9) j = true;
@@ -90,45 +110,45 @@ const { startServer } = require('./server');
       if (p.grounded && near(top(p), 8) && cx(p) < 5.7) j = true;
       if (cx(p) < 1.7) wm = 0; return I(loc(p, wm), j); };
     run(900, () => [I(toward(S.p1, 6.5)), wp6()]);
-    out['6 Your turn to climb'] = won(); out['6 paints'] = S.events.filter(e => e === 'paint').length;
-    U.loadById('your-turn-to-climb'); run(900, () => [I(toward(S.p1, 6.5)), wp6()]); out['6 solo White (no crate)'] = won();
+    out['7 Your turn to climb'] = won(); out['7 paints'] = S.events.filter(e => e === 'paint').length;
+    U.loadById('your-turn-to-climb'); run(900, () => [I(toward(S.p1, 6.5)), wp6()]); out['7 solo White (no crate)'] = won();
 
-    // 7 The ladder
+    // 8 The ladder
     const blackSteps = [[12, 3.5, -1], [10, 2.55, 1], [8, 4.45, -1], [6, 2.55, 1], [4, 5.35, 0]];
     const whiteSteps = [[1, 3.5, -1], [3, 2.55, 1], [5, 4.45, -1], [7, 2.55, 1], [9, 5.35, 0]];
     U.loadById('the-ladder'); S.events.length = 0;
     { const cb = climber(S.p1, blackSteps), cw = climber(S.p2, whiteSteps); run(900, () => [cb(), cw()]); }
-    out['7 crossed after climb'] = near(bot(S.p1), 4) && near(top(S.p2), 9);
+    out['8 crossed after climb'] = near(bot(S.p1), 4) && near(top(S.p2), 9);
     run(120, () => [I(toward(S.p1, 5.35)), I(toward(S.p2, 5.35))]);
-    floatAcross(); out['7 The ladder'] = won(); out['7 pops'] = pops();
+    floatAcross(); out['8 The ladder'] = won(); out['8 pops'] = pops();
     U.loadById('the-ladder'); S.events.length = 0; { const cb = climber(S.p1, blackSteps); run(600, () => [cb(), I()]); }
-    run(300, () => [I(1), I()]); out['7 solo Black pops'] = pops();
+    run(300, () => [I(1), I()]); out['8 solo Black pops'] = pops();
 
-    // 8 Busy doors
+    // 9 Busy doors
     U.loadById('busy-doors');
     run(120, () => [I(toward(S.p1, 11.5)), I()]);
     run(500, () => [I(toward(S.p1, 11.5)), I(toward(S.p2, 10.5))]);
-    out['8 W in socket'] = S.crates.find(c => c.owner === 2).y.toFixed(2);
+    out['9 W in socket'] = S.crates.find(c => c.owner === 2).y.toFixed(2);
     run(200, () => [I(toward(S.p1, 11.5)), I(toward(S.p2, 8.5))]);
     run(600, () => [I(toward(S.p1, 1.5)), I(toward(S.p2, 8.5))]);
-    out['8 K in socket'] = S.crates.find(c => c.owner === 1).y.toFixed(2);
+    out['9 K in socket'] = S.crates.find(c => c.owner === 1).y.toFixed(2);
     run(300, () => [I(toward(S.p1, 1.5)), I(toward(S.p2, 12.5))]);
-    out['8 Busy doors'] = won();
-    U.loadById('busy-doors'); run(800, () => [I(toward(S.p1, 1.5)), I(toward(S.p2, 12.5))]); out['8 no teamwork'] = won();
+    out['9 Busy doors'] = won();
+    U.loadById('busy-doors'); run(800, () => [I(toward(S.p1, 1.5)), I(toward(S.p2, 12.5))]); out['9 no teamwork'] = won();
 
-    // 9 The gate
+    // 10 The gate
     U.loadById('the-gate'); S.events.length = 0;
     run(250, () => [I(toward(S.p1, 1.0)), I(toward(S.p2, 1.0))]);
-    out['9 gate open'] = S.L.doors.every(d => d.open);
+    out['10 gate open'] = S.L.doors.every(d => d.open);
     run(150, () => [I(toward(S.p1, 3.5)), I(toward(S.p2, 3.5))]);
     { const cb = climber(S.p1, blackSteps), cw = climber(S.p2, whiteSteps); run(900, () => [cb(), cw()]); }
     run(120, () => [I(toward(S.p1, 5.35)), I(toward(S.p2, 5.35))]);
-    floatAcross(); out['9 The gate'] = won(); out['9 pops'] = pops();
-    // 9 without crates: pair must be stopped by the closed gate
+    floatAcross(); out['10 The gate'] = won(); out['10 pops'] = pops();
+    // 10 without crates: pair must be stopped by the closed gate
     U.loadById('the-gate'); run(60, () => [I(), I()]);
     { const cb = climber(S.p1, blackSteps), cw = climber(S.p2, whiteSteps); run(900, () => [cb(), cw()]); }
     run(120, () => [I(toward(S.p1, 5.35)), I(toward(S.p2, 5.35))]);
-    floatAcross(); out['9 gate closed blocks'] = !won() && cx(S.p1) < 9;
+    floatAcross(); out['10 gate closed blocks'] = !won() && cx(S.p1) < 9;
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -136,14 +156,14 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 Special delivery', '4 Stepping stones', '5 Meet in the middle',
-    '6 Your turn to climb', '7 The ladder', '8 Busy doors', '9 The gate',
-    '4 stones: Black waits at door', '4 stones: White on button, door open', '7 crossed after climb',
-    '9 gate open', '9 gate closed blocks'];
-  const mustFail = ['4 solo Black reaches exit', '6 solo White (no crate)', '8 no teamwork'];
+  const mustPass = ['1 Hello', '2 Relay', '3 Special delivery', '4 Stepping stones', '5 a', '5 a: crate on plate c', '6 Meet in the middle',
+    '7 Your turn to climb', '8 The ladder', '9 Busy doors', '10 The gate',
+    '4 stones: Black waits at door', '4 stones: White on button, door open', '8 crossed after climb',
+    '10 gate open', '10 gate closed blocks'];
+  const mustFail = ['4 solo Black reaches exit', '5 a: no teamwork', '7 solo White (no crate)', '9 no teamwork'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
-  if (result['7 solo Black pops'] < 1) bad.push('7 solo Black should hit thorns');
+  if (result['8 solo Black pops'] < 1) bad.push('8 solo Black should hit thorns');
   if (bad.length) { console.error('FAILED:', bad); process.exitCode = 1; } else console.log('All level checks passed');
   await browser.close();
   server.close();
