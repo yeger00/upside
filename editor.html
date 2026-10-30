@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Upside Level Editor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&display=swap">
+<style>
+  :root {
+    /* Grayscale workbench that matches the game. Layout: header toolbar, then palette | level | details. */
+    --bg: #1f1f1f;
+    --panel: #2a2a2a;
+    --line: #3a3a3a;
+    --text: #ececec;
+    --muted: #a8a8a8;
+    --map: #767676;
+    --accent: #ffffff;
+    --bad: #ffb3b3;
+    --font: "Nunito", "Trebuchet MS", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { background: var(--bg); color: var(--text); font: 600 14px/1.4 var(--font); display: grid; grid-template-rows: auto 1fr; }
+  button, select, input, textarea { font: inherit; color: inherit; }
+  button, select {
+    background: #3a3a3a; border: 1px solid #4a4a4a; border-radius: 8px; padding: 6px 12px; cursor: pointer;
+  }
+  button:hover:not(:disabled), select:hover { background: #474747; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.primary { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 800; }
+  button.primary:hover:not(:disabled) { background: #dcdcdc; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  header h1 { font: 900 18px/1 var(--font); margin: 0; letter-spacing: 0.04em; }
+  header h1 span { color: var(--muted); font-weight: 800; }
+  .group { display: flex; align-items: center; gap: 6px; }
+  .group label { color: var(--muted); }
+  .spacer { flex: 1; }
+
+  main { display: grid; grid-template-columns: 200px 1fr 340px; min-height: 0; }
+  aside { background: var(--panel); padding: 14px; overflow: auto; display: flex; flex-direction: column; gap: 14px; }
+  aside.left { border-right: 1px solid var(--line); }
+  aside.right { border-left: 1px solid var(--line); }
+  h2 { font: 800 12px/1 var(--font); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; }
+
+  .palette { display: grid; grid-template-columns: 1fr; gap: 4px; }
+  .tool { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 8px; text-align: left; padding: 4px 8px; background: transparent; border-color: transparent; }
+  .tool canvas { width: 28px; height: 28px; border-radius: 4px; }
+  .tool kbd { color: var(--muted); font: 12px var(--mono); }
+  .tool[aria-pressed="true"] { background: #4a4a4a; border-color: var(--accent); }
+  .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .check { display: flex; gap: 8px; align-items: center; color: var(--muted); }
+
+  .stage { position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; overflow: hidden; padding: 12px; }
+  #grid { display: block; cursor: crosshair; border-radius: 6px; box-shadow: 0 8px 30px rgba(0,0,0,0.45); }
+  .status { position: absolute; left: 16px; bottom: 10px; color: var(--muted); font-size: 13px; }
+
+  .field { display: grid; gap: 4px; margin-bottom: 8px; }
+  .field label { color: var(--muted); font-size: 13px; }
+  .field input, .field textarea { background: #1f1f1f; border: 1px solid #4a4a4a; border-radius: 8px; padding: 6px 8px; }
+  .field textarea { resize: vertical; min-height: 48px; }
+  .note { color: var(--muted); font-size: 13px; margin: 0; }
+  ul.msgs { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+  ul.msgs.bad li { color: var(--bad); }
+  .ok { color: var(--accent); margin: 0; }
+  #out { width: 100%; height: 190px; background: #111; color: #dcdcdc; border: 1px solid #4a4a4a; border-radius: 8px; padding: 8px; font: 11.5px/1.35 var(--mono); white-space: pre; resize: vertical; }
+  #copyStatus { min-height: 1.4em; margin: 4px 0 0; }
+
+  .playtest { position: fixed; inset: 0; background: rgba(10,10,10,0.92); display: none; grid-template-rows: auto 1fr; z-index: 10; }
+  .playtest.open { display: grid; }
+  .playtest .bar { display: flex; align-items: center; gap: 16px; padding: 10px 16px; }
+  .playtest .bar p { margin: 0; color: var(--muted); }
+  .playtest iframe { justify-self: center; align-self: center; border: 0; border-radius: 18px; height: min(88vh, 900px); aspect-ratio: 0.58; background: #1c1c1c; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+  @media (max-width: 980px) { main { grid-template-columns: 170px 1fr; } aside.right { grid-column: 1 / -1; border-left: 0; border-top: 1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>UPSIDE <span>level editor</span></h1>
+  <div class="group">
+    <label for="newW">New level</label>
+    <select id="newW" aria-label="Width"></select>
+    <span aria-hidden="true">×</span>
+    <select id="newH" aria-label="Height"></select>
+    <button id="newBtn" type="button">Start new</button>
+  </div>
+  <div class="group">
+    <label for="startFrom">Start from</label>
+    <select id="startFrom"><option value="">Loading levels…</option></select>
+    <button id="loadBtn" type="button">Open copy</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="group">
+    <button id="undoBtn" type="button" title="Undo (Ctrl+Z)">Undo</button>
+    <button id="redoBtn" type="button" title="Redo (Ctrl+Shift+Z)">Redo</button>
+    <button id="playBtn" type="button" class="primary" title="Play-test (P)">Play-test</button>
+  </div>
+</header>
+
+<main>
+  <aside class="left">
+    <section>
+      <h2>Tiles</h2>
+      <div class="palette" id="palette" role="toolbar" aria-label="Tiles"></div>
+    </section>
+    <section>
+      <label class="check"><input type="checkbox" id="letters"> Show grid letters <kbd>L</kbd></label>
+    </section>
+    <p class="note">Click or drag to paint. Right-click erases. The outer wall can't be changed.</p>
+  </aside>
+
+  <div class="stage" id="stage">
+    <canvas id="grid" aria-label="Level grid"></canvas>
+    <div class="status" id="status"></div>
+  </div>
+
+  <aside class="right">
+    <section>
+      <h2>Level</h2>
+      <div class="field"><label for="name">Name</label><input id="name" autocomplete="off"></div>
+      <div class="field"><label for="lid">Id (file name)</label><input id="lid" autocomplete="off" spellcheck="false"></div>
+      <div class="field"><label for="author">Author</label><input id="author" autocomplete="off"></div>
+      <div class="field"><label for="notes">Design notes (not shown in the game)</label><textarea id="notes"></textarea></div>
+      <p class="note" id="origin"></p>
+    </section>
+    <section>
+      <h2>Problems</h2>
+      <div id="problems"></div>
+    </section>
+    <section>
+      <h2>Hints</h2>
+      <div id="hints"></div>
+    </section>
+    <section>
+      <h2>Copy level</h2>
+      <div class="row">
+        <button id="copyBtn" type="button" class="primary">Copy level</button>
+        <button id="selectBtn" type="button">Select all</button>
+      </div>
+      <p class="note" id="copyStatus" aria-live="polite"></p>
+      <textarea id="out" readonly aria-label="Level file"></textarea>
+      <p class="note">Paste this into a Claude session on the upside repo and ask it to add the level.</p>
+    </section>
+  </aside>
+</main>
+
+<div class="playtest" id="playtest" role="dialog" aria-label="Play-test">
+  <div class="bar">
+    <button id="backBtn" type="button" class="primary">Back to editing (Esc)</button>
+    <p>Black: A D W · White: ← → ↓ · R: restart · Space: ready</p>
+  </div>
+  <iframe id="game" title="Play-test"></iframe>
+</div>
+
+<script src="level-format.js"></script>
+<script>
+(() => {
+'use strict';
+const F = window.UpsideLevelFormat;
+
+/* ---------------- tools ---------------- */
+const TOOLS = [
+  { ch: '#', label: 'Wall', key: 'q' },
+  { ch: ' ', label: 'Eraser', key: 'e' },
+  { ch: '^', label: 'Thorns (floor)', key: 't' },
+  { ch: 'v', label: 'Thorns (ceiling)', key: 'g' },
+  { ch: '1', label: 'Black start', key: 'b', unique: true },
+  { ch: '2', label: 'White start', key: 'n', unique: true },
+  { ch: 'X', label: 'Black exit', key: 'x', unique: true },
+  { ch: 'Y', label: 'White exit', key: 'y', unique: true },
+  { ch: 'K', label: 'Black crate', key: 'k' },
+  { ch: 'W', label: 'White crate', key: 'j' },
+  { ch: 'a', label: 'Plate ●', key: '1' }, { ch: 'A', label: 'Door ●', key: '⇧1' },
+  { ch: 'b', label: 'Plate ▲', key: '2' }, { ch: 'B', label: 'Door ▲', key: '⇧2' },
+  { ch: 'c', label: 'Plate ■', key: '3' }, { ch: 'C', label: 'Door ■', key: '⇧3' },
+  { ch: 'd', label: 'Plate ◆', key: '4' }, { ch: 'D', label: 'Door ◆', key: '⇧4' }
+];
+const SYMBOL = { a: 'circle', b: 'triangle', c: 'square', d: 'diamond' };
+const C = { map: '#767676', wall: '#4a4a4a', edgeWall: '#3b3b3b', wallEdge: '#626262', machine: '#b5b5b5', ink: '#4a4a4a', thorn: '#262626' };
+
+/* ---------------- state ---------------- */
+const E = {
+  map: [],                 // array of arrays of chars
+  meta: { id: 'my-level', name: 'My level', author: '', notes: '' },
+  idTouched: false,
+  tool: '#',
+  undo: [], redo: [],
+  dirty: false,
+  letters: false,
+  origin: '',
+  levels: []               // built-in levels [{id, name, def}]
+};
+
+const $ = id => document.getElementById(id);
+const canvas = $('grid'), ctx = canvas.getContext('2d');
+let TS = 32, DPR = 1, hover = null, painting = null;
+
+function blank(w, h) {
+  return Array.from({ length: h }, (_, y) => Array.from({ length: w }, (_, x) =>
+    (x === 0 || y === 0 || x === w - 1 || y === h - 1) ? '#' : ' '));
+}
+const W = () => E.map[0].length, H = () => E.map.length;
+const isEdge = (x, y) => x === 0 || y === 0 || x === W() - 1 || y === H() - 1;
+const mapRows = () => E.map.map(r => r.join(''));
+function levelDef() {
+  const d = { format: F.FORMAT, version: F.VERSION, id: E.meta.id.trim(), name: E.meta.name.trim(), map: mapRows() };
+  if (E.meta.author.trim()) d.author = E.meta.author.trim();
+  if (E.meta.notes.trim()) d.notes = E.meta.notes.trim();
+  return d;
+}
+
+/* ---------------- editing ---------------- */
+function snapshot() { return E.map.map(r => r.slice()); }
+function pushUndo() { E.undo.push(snapshot()); if (E.undo.length > 200) E.undo.shift(); E.redo.length = 0; }
+function setCell(x, y, ch) {
+  if (x < 0 || y < 0 || x >= W() || y >= H() || isEdge(x, y)) return false;
+  const tool = TOOLS.find(t => t.ch === ch);
+  if (tool && tool.unique) {
+    for (let yy = 0; yy < H(); yy++) for (let xx = 0; xx < W(); xx++) if (E.map[yy][xx] === ch) E.map[yy][xx] = ' ';
+  }
+  if (E.map[y][x] === ch) return false;
+  E.map[y][x] = ch;
+  E.dirty = true;
+  return true;
+}
+function undo() { if (!E.undo.length) return; E.redo.push(snapshot()); E.map = E.undo.pop(); E.dirty = true; refresh(); }
+function redo() { if (!E.redo.length) return; E.undo.push(snapshot()); E.map = E.redo.pop(); E.dirty = true; refresh(); }
+
+function startLevel(map, meta, origin) {
+  E.map = map; E.meta = Object.assign({ id: '', name: '', author: '', notes: '' }, meta);
+  E.idTouched = !!meta.idTouched; E.undo = []; E.redo = []; E.dirty = false; E.origin = origin || '';
+  for (const k of ['name', 'author', 'notes']) $(k).value = E.meta[k] || '';
+  $('lid').value = E.meta.id;
+  $('copyStatus').textContent = '';
+  refresh(true);
+}
+function confirmDiscard() { return !E.dirty || window.confirm('Discard your changes to this level?'); }
+
+/* ---------------- drawing ---------------- */
+function rr(g, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+function symbol(g, kind, cx, cy, r, color) {
+  g.fillStyle = color; g.beginPath();
+  if (kind === 'circle') g.arc(cx, cy, r, 0, Math.PI * 2);
+  else if (kind === 'triangle') { g.moveTo(cx, cy - r); g.lineTo(cx + r * 0.95, cy + r * 0.75); g.lineTo(cx - r * 0.95, cy + r * 0.75); g.closePath(); }
+  else if (kind === 'square') g.rect(cx - r * 0.8, cy - r * 0.8, r * 1.6, r * 1.6);
+  else { g.moveTo(cx, cy - r); g.lineTo(cx + r, cy); g.lineTo(cx, cy + r); g.lineTo(cx - r, cy); g.closePath(); }
+  g.fill();
+}
+function character(g, x, y, ts, black) {
+  const w = ts * 0.7, h = ts * 0.85;
+  g.save();
+  g.translate(x + ts / 2, black ? y + ts - h / 2 : y + h / 2);
+  if (!black) g.rotate(Math.PI);
+  rr(g, -w / 2, -h / 2, w, h, w * 0.34);
+  g.fillStyle = black ? '#000' : '#fff'; g.fill();
+  g.lineWidth = Math.max(1.5, ts * 0.07); g.strokeStyle = black ? '#fff' : '#000'; g.stroke();
+  g.fillStyle = black ? '#fff' : '#000';
+  for (const s of [-1, 1]) { g.beginPath(); g.ellipse(s * w * 0.18, -h * 0.12, w * 0.085, h * 0.11, 0, 0, Math.PI * 2); g.fill(); }
+  g.restore();
+}
+function exitArch(g, x, y, ts, black) {
+  g.save(); g.translate(x + ts / 2, y + ts / 2); if (!black) g.rotate(Math.PI);
+  const w = ts * 0.74, h = ts * 0.96, base = ts / 2;
+  g.beginPath(); g.moveTo(-w / 2, base); g.lineTo(-w / 2, base - h + w / 2); g.arc(0, base - h + w / 2, w / 2, Math.PI, 0); g.lineTo(w / 2, base); g.closePath();
+  g.fillStyle = black ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)'; g.fill();
+  g.lineWidth = Math.max(2, ts * 0.09); g.strokeStyle = black ? '#000' : '#fff'; g.stroke();
+  g.restore();
+}
+function crate(g, x, y, ts, black) {
+  const s = ts * 0.96, ox = x + ts * 0.02, oy = y + ts * 0.02;
+  rr(g, ox, oy, s, s, s * 0.14);
+  g.fillStyle = black ? '#000' : '#fff'; g.fill();
+  g.lineWidth = Math.max(1.5, ts * 0.07); g.strokeStyle = black ? '#fff' : '#000'; g.stroke();
+  g.strokeStyle = black ? '#5a5a5a' : '#a8a8a8'; g.lineWidth = Math.max(1, ts * 0.06);
+  const i = s * 0.24;
+  g.beginPath(); g.moveTo(ox + i, oy + i); g.lineTo(ox + s - i, oy + s - i); g.moveTo(ox + s - i, oy + i); g.lineTo(ox + i, oy + s - i); g.stroke();
+}
+function thorns(g, x, y, ts, up) {
+  g.fillStyle = C.thorn;
+  const bw = ts / 3;
+  for (let k = 0; k < 3; k++) {
+    g.beginPath();
+    if (up) { g.moveTo(x + k * bw, y + ts); g.lineTo(x + (k + 0.5) * bw, y + ts * 0.45); g.lineTo(x + (k + 1) * bw, y + ts); }
+    else { g.moveTo(x + k * bw, y); g.lineTo(x + (k + 0.5) * bw, y + ts * 0.55); g.lineTo(x + (k + 1) * bw, y); }
+    g.closePath(); g.fill();
+  }
+}
+function plate(g, x, y, ts, id, side) {
+  const th = 0.18;
+  const py = side === 'floor' ? y + ts * (1 - th) : y;
+  g.fillStyle = C.machine; rr(g, x + ts * 0.08, py, ts * 0.84, Math.max(2, ts * th), ts * 0.05); g.fill();
+  symbol(g, SYMBOL[id], x + ts / 2, y + ts * (side === 'floor' ? 0.55 : 0.45), ts * 0.14, C.machine);
+}
+// one tile glyph, used by the palette and the grid
+function glyph(g, ch, x, y, ts, opts) {
+  opts = opts || {};
+  if (ch === '#') {
+    g.fillStyle = opts.edge ? C.edgeWall : C.wall; g.fillRect(x, y, ts + 0.5, ts + 0.5);
+  } else if (ch === '^' || ch === 'v') thorns(g, x, y, ts, ch === '^');
+  else if (ch === '1' || ch === '2') character(g, x, y, ts, ch === '1');
+  else if (ch === 'X' || ch === 'Y') exitArch(g, x, y, ts, ch === 'X');
+  else if (ch === 'K' || ch === 'W') crate(g, x, y, ts, ch === 'K');
+  else if (ch >= 'a' && ch <= 'd') plate(g, x, y, ts, ch, opts.side || 'floor');
+  else if (ch >= 'A' && ch <= 'D') {
+    g.fillStyle = C.machine; g.fillRect(x + ts * 0.15, y, ts * 0.7, ts + 0.5);
+    if (opts.symbol !== false) symbol(g, SYMBOL[ch.toLowerCase()], x + ts / 2, y + ts / 2, ts * 0.17, C.ink);
+  } else if (ch === ' ' && opts.eraser) {
+    g.strokeStyle = '#d0d0d0'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + ts * 0.25, y + ts * 0.25); g.lineTo(x + ts * 0.75, y + ts * 0.75); g.moveTo(x + ts * 0.75, y + ts * 0.25); g.lineTo(x + ts * 0.25, y + ts * 0.75); g.stroke();
+  }
+}
+
+function layout() {
+  const stage = $('stage');
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  TS = Math.max(12, Math.floor(Math.min((stage.clientWidth - 32) / W(), (stage.clientHeight - 48) / H(), 48)));
+  canvas.width = W() * TS * DPR; canvas.height = H() * TS * DPR;
+  canvas.style.width = W() * TS + 'px'; canvas.style.height = H() * TS + 'px';
+}
+function plateSide(x, y) {
+  const wall = (xx, yy) => yy < 0 || yy >= H() || E.map[yy][xx] === '#';
+  const below = wall(x, y + 1), above = wall(x, y - 1);
+  return below && above ? (y < H() / 2 ? 'ceil' : 'floor') : (below ? 'floor' : 'ceil');
+}
+function draw() {
+  const w = W(), h = H(), ts = TS;
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = C.map; ctx.fillRect(0, 0, w * ts, h * ts);
+  // faint grid
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 1; x < w; x++) { ctx.moveTo(x * ts + 0.5, 0); ctx.lineTo(x * ts + 0.5, h * ts); }
+  for (let y = 1; y < h; y++) { ctx.moveTo(0, y * ts + 0.5); ctx.lineTo(w * ts, y * ts + 0.5); }
+  ctx.stroke();
+  const at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h) ? '#' : E.map[y][x];
+  // walls with lit edges
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (at(x, y) === '#') {
+    glyph(ctx, '#', x * ts, y * ts, ts, { edge: isEdge(x, y) });
+    ctx.fillStyle = C.wallEdge;
+    const e = Math.max(2, Math.round(ts * 0.08));
+    if (y > 0 && at(x, y - 1) !== '#') ctx.fillRect(x * ts, y * ts, ts, e);
+    if (y < h - 1 && at(x, y + 1) !== '#') ctx.fillRect(x * ts, (y + 1) * ts - e, ts, e);
+  }
+  // doors: one symbol per run
+  const doors = {};
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const ch = at(x, y); if (ch >= 'A' && ch <= 'D') (doors[ch] = doors[ch] || []).push({ x, y }); }
+  // wires
+  ctx.save(); ctx.setLineDash([ts * 0.12, ts * 0.18]); ctx.lineWidth = Math.max(1.5, ts * 0.06); ctx.strokeStyle = 'rgba(200,200,200,0.55)';
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const ch = at(x, y);
+    if (ch >= 'a' && ch <= 'd' && doors[ch.toUpperCase()]) {
+      const cs = doors[ch.toUpperCase()], mid = cs.reduce((s, c) => s + c.y, 0) / cs.length;
+      ctx.beginPath(); ctx.moveTo((x + 0.5) * ts, (y + 0.5) * ts); ctx.lineTo((cs[0].x + 0.5) * ts, (mid + 0.5) * ts); ctx.stroke();
+    }
+  }
+  ctx.restore();
+  for (const D in doors) {
+    for (const c of doors[D]) glyph(ctx, D, c.x * ts, c.y * ts, ts, { symbol: false });
+    const cs = doors[D], mid = cs.reduce((s, c) => s + c.y, 0) / cs.length;
+    symbol(ctx, SYMBOL[D.toLowerCase()], (cs[0].x + 0.5) * ts, (mid + 0.5) * ts, ts * 0.17, C.ink);
+  }
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const ch = at(x, y);
+    if (ch === '#' || ch === ' ' || (ch >= 'A' && ch <= 'D')) continue;
+    glyph(ctx, ch, x * ts, y * ts, ts, { side: ch >= 'a' && ch <= 'd' ? plateSide(x, y) : undefined });
+  }
+  if (E.letters) {
+    ctx.font = `700 ${Math.round(ts * 0.42)}px ${getComputedStyle(document.body).getPropertyValue('--mono')}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const ch = at(x, y); if (ch === ' ') continue;
+      ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,0.85)'; ctx.strokeText(ch, (x + 0.5) * ts, (y + 0.52) * ts);
+      ctx.fillStyle = '#fff'; ctx.fillText(ch, (x + 0.5) * ts, (y + 0.52) * ts);
+    }
+  }
+  if (hover) {
+    ctx.lineWidth = 2; ctx.strokeStyle = isEdge(hover.x, hover.y) ? 'rgba(255,120,120,0.9)' : '#fff';
+    ctx.strokeRect(hover.x * ts + 1, hover.y * ts + 1, ts - 2, ts - 2);
+  }
+}
+
+/* ---------------- side panels ---------------- */
+function list(el, items, cls) {
+  el.innerHTML = '';
+  const ul = document.createElement('ul'); ul.className = 'msgs ' + (cls || '');
+  for (const t of items) { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); }
+  el.appendChild(ul);
+}
+function refresh(relayout) {
+  if (relayout) layout();
+  draw();
+  const def = levelDef();
+  const check = F.checkLevel(def);
+  if (check.ok) { $('problems').innerHTML = '<p class="ok">No problems. Ready to play-test and copy.</p>'; }
+  else list($('problems'), check.errors, 'bad');
+  const hs = F.hints(def.map);
+  if (hs.length) list($('hints'), hs); else $('hints').innerHTML = '<p class="note">Nothing to point out.</p>';
+  $('out').value = check.ok ? F.formatLevelJSON(def) : '';
+  $('out').placeholder = check.ok ? '' : 'Fix the problems above to get the level file.';
+  $('copyBtn').disabled = !check.ok;
+  $('playBtn').disabled = !check.ok;
+  $('playBtn').title = check.ok ? 'Play-test (P)' : 'Fix the problems first';
+  $('undoBtn').disabled = !E.undo.length; $('redoBtn').disabled = !E.redo.length;
+  $('origin').textContent = E.origin;
+}
+
+/* ---------------- palette ---------------- */
+function buildPalette() {
+  const pal = $('palette');
+  for (const t of TOOLS) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'tool'; b.dataset.tool = t.ch; b.setAttribute('aria-pressed', 'false');
+    const cv = document.createElement('canvas'); cv.width = 56; cv.height = 56;
+    const g = cv.getContext('2d'); g.scale(2, 2);
+    g.fillStyle = C.map; g.fillRect(0, 0, 28, 28);
+    if (t.ch === 'a' || t.ch === 'b' || t.ch === 'c' || t.ch === 'd') { g.fillStyle = C.wall; g.fillRect(0, 24, 28, 4); }
+    glyph(g, t.ch, 2, 1, 24, { eraser: true });
+    const name = document.createElement('span'); name.textContent = t.label;
+    const k = document.createElement('kbd'); k.textContent = t.key.toUpperCase();
+    b.append(cv, name, k);
+    b.addEventListener('click', () => setTool(t.ch));
+    pal.appendChild(b);
+  }
+}
+function setTool(ch) {
+  E.tool = ch;
+  for (const b of document.querySelectorAll('.tool')) b.setAttribute('aria-pressed', b.dataset.tool === ch ? 'true' : 'false');
+}
+
+/* ---------------- grid input ---------------- */
+function cellAt(e) {
+  const r = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - r.left) / TS), y = Math.floor((e.clientY - r.top) / TS);
+  return (x >= 0 && y >= 0 && x < W() && y < H()) ? { x, y } : null;
+}
+function describe(c) {
+  if (!c) return '';
+  const ch = E.map[c.y][c.x];
+  const t = TOOLS.find(t => t.ch === ch);
+  return `Column ${c.x + 1}, row ${c.y + 1}: ${isEdge(c.x, c.y) ? 'outer wall (locked)' : (t ? t.label : 'empty')}`;
+}
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+canvas.addEventListener('pointerdown', e => {
+  const c = cellAt(e); if (!c) return;
+  canvas.setPointerCapture(e.pointerId);
+  const ch = e.button === 2 ? ' ' : E.tool;
+  const tool = TOOLS.find(t => t.ch === ch);
+  pushUndo();
+  painting = { ch, unique: tool && tool.unique, changed: setCell(c.x, c.y, ch) };
+  refresh();
+});
+canvas.addEventListener('pointermove', e => {
+  const c = cellAt(e);
+  hover = c; $('status').textContent = describe(c);
+  if (painting && c && !painting.unique) { if (setCell(c.x, c.y, painting.ch)) painting.changed = true; }
+  draw();
+  if (painting && painting.changed) refresh();
+});
+function endPaint() {
+  if (painting && !painting.changed) E.undo.pop();   // nothing changed: drop the undo step
+  painting = null; refresh();
+}
+canvas.addEventListener('pointerup', endPaint);
+canvas.addEventListener('pointercancel', endPaint);
+canvas.addEventListener('pointerleave', () => { hover = null; $('status').textContent = ''; draw(); });
+
+/* ---------------- details form ---------------- */
+$('name').addEventListener('input', e => {
+  E.meta.name = e.target.value; E.dirty = true;
+  if (!E.idTouched) { E.meta.id = F.slugify(E.meta.name); $('lid').value = E.meta.id; }
+  refresh();
+});
+$('lid').addEventListener('input', e => { E.meta.id = e.target.value; E.idTouched = true; E.dirty = true; refresh(); });
+for (const k of ['author', 'notes']) $(k).addEventListener('input', e => { E.meta[k] = e.target.value; E.dirty = true; refresh(); });
+
+/* ---------------- header controls ---------------- */
+for (let n = F.MIN_SIZE; n <= F.MAX_SIZE; n++) {
+  $('newW').add(new Option(String(n), String(n), false, n === 14));
+  $('newH').add(new Option(String(n), String(n), false, n === 12));
+}
+$('newBtn').addEventListener('click', () => {
+  if (!confirmDiscard()) return;
+  startLevel(blank(+$('newW').value, +$('newH').value), { id: 'my-level', name: 'My level', author: E.meta.author }, 'A new, empty level.');
+});
+$('loadBtn').addEventListener('click', () => {
+  const L = E.levels.find(l => l.id === $('startFrom').value);
+  if (!L || !confirmDiscard()) return;
+  startLevel(L.def.map.map(r => r.split('')), Object.assign({ idTouched: true }, L.def),
+    `A copy of "${L.def.name}". Keep the id to replace that level, or change the id to make a new one.`);
+});
+$('undoBtn').addEventListener('click', undo);
+$('redoBtn').addEventListener('click', redo);
+$('letters').addEventListener('change', e => { E.letters = e.target.checked; draw(); });
+
+/* ---------------- copy ---------------- */
+$('copyBtn').addEventListener('click', async () => {
+  const text = $('out').value;
+  if (!text) return;
+  try {
+    await navigator.clipboard.writeText(text);
+    $('copyStatus').textContent = 'Copied. Paste it into Claude and ask it to add the level.';
+    E.dirty = false;
+  } catch (err) {
+    $('out').focus(); $('out').select();
+    $('copyStatus').textContent = "The browser blocked copying. The text is selected: press Ctrl+C (⌘C on a Mac).";
+  }
+});
+$('selectBtn').addEventListener('click', () => { $('out').focus(); $('out').select(); });
+
+/* ---------------- play-test ---------------- */
+const frame = $('game');
+let frameReady = null;
+function ensureFrame() {
+  if (frameReady) return frameReady;
+  frameReady = new Promise(resolve => {
+    frame.addEventListener('load', () => {
+      const wait = () => (frame.contentWindow.UPSIDE && frame.contentWindow.UPSIDE.ready) ? resolve() : setTimeout(wait, 30);
+      wait();
+      frame.contentWindow.addEventListener('keydown', e => { if (e.key === 'Escape') closePlay(); });
+    }, { once: true });
+    frame.src = 'index.html#playtest';
+  });
+  return frameReady;
+}
+async function openPlay() {
+  const def = levelDef();
+  if (!F.checkLevel(def).ok) return;
+  $('playtest').classList.add('open');
+  await ensureFrame();
+  frame.contentWindow.UPSIDE.manual = false;
+  frame.contentWindow.UPSIDE.loadCustom(def);
+  frame.focus();
+}
+function closePlay() { $('playtest').classList.remove('open'); canvas.focus(); }
+$('playBtn').addEventListener('click', openPlay);
+$('backBtn').addEventListener('click', closePlay);
+
+/* ---------------- keyboard ---------------- */
+window.addEventListener('keydown', e => {
+  if ($('playtest').classList.contains('open')) { if (e.key === 'Escape') closePlay(); return; }
+  const inField = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && e.key.toLowerCase() === 'z') { if (inField) return; e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && e.key.toLowerCase() === 'y') { if (inField) return; e.preventDefault(); redo(); return; }
+  if (inField || mod || e.altKey) return;
+  const digit = /^Digit([1-4])$/.exec(e.code);
+  if (digit) { setTool((e.shiftKey ? 'ABCD' : 'abcd')[+digit[1] - 1]); return; }
+  const k = e.key.toLowerCase();
+  if (k === 'p') { openPlay(); return; }
+  if (k === 'l') { $('letters').checked = !$('letters').checked; E.letters = $('letters').checked; draw(); return; }
+  const t = TOOLS.find(t => t.key === k);
+  if (t) setTool(t.ch);
+});
+window.addEventListener('beforeunload', e => { if (E.dirty) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('resize', () => refresh(true));
+
+/* ---------------- boot ---------------- */
+async function loadBuiltIn() {
+  const sel = $('startFrom');
+  try {
+    const ids = await (await fetch('levels/index.json', { cache: 'no-cache' })).json();
+    const defs = await Promise.all(ids.map(id => fetch(`levels/${id}.json`, { cache: 'no-cache' }).then(r => r.json())));
+    E.levels = defs.map(d => ({ id: d.id, name: d.name, def: d }));
+    sel.innerHTML = '';
+    E.levels.forEach((l, i) => sel.add(new Option(`${i + 1}. ${l.name}`, l.id)));
+  } catch (err) {
+    sel.innerHTML = '<option value="">Levels unavailable (open through a web server)</option>';
+    $('loadBtn').disabled = true;
+  }
+}
+buildPalette();
+setTool('#');
+startLevel(blank(14, 12), { id: 'my-level', name: 'My level', author: '' }, 'A new, empty level.');
+loadBuiltIn();
+
+// test hook
+window.EDITOR = {
+  E, levelDef, setTool, refresh,
+  cellCenter(x, y) { const r = canvas.getBoundingClientRect(); return { x: r.left + (x + 0.5) * TS, y: r.top + (y + 0.5) * TS }; }
+};
+})();
+</script>
+</body>
+</html>
