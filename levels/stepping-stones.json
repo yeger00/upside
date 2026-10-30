@@ -1,0 +1,21 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "stepping-stones",
+  "name": "Stepping stones",
+  "author": "yeger00",
+  "map": [
+    "###############",
+    "#2 vvvvvvv a Y#",
+    "#   ##  ##    #",
+    "#             #",
+    "#             #",
+    "#           A #",
+    "#           A #",
+    "#           A #",
+    "#           A #",
+    "#  ##  ##   A #",
+    "#1 ^^^^^^^  AX#",
+    "###############"
+  ]
+}

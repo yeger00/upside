@@ -35,6 +35,7 @@
 </head>
 <body>
 <canvas id="c" tabindex="0" aria-label="Upside: a two-player co-op game. Black plays from the bottom edge, White from the top edge."></canvas>
+<script src="level-format.js"></script>
 <script>
 (() => {
 'use strict';
@@ -61,145 +62,10 @@ const C = {
 };
 
 /* ============================================================
-   LEVELS
-   #  wall          1 / 2  spawn Black / White
-   X  Black exit    Y      White exit
-   a-d plate  ->  A-D door (same letter)
-   K  black crate   W      white crate  (crates take the gravity of
-                                         the last player who touched them)
-   ^  thorns on floor   v  thorns on ceiling
+   LEVELS: loaded at startup from levels/index.json and levels/<id>.json
+   (format and legend: see level-format.js)
    ============================================================ */
-const LEVELS = [
-  { name: 'Hello, other side', map: [
-    '############',
-    '#2    A   Y#',
-    '#     A    #',
-    '#     A    #',
-    '#          #',
-    '#          #',
-    '#          #',
-    '#          #',
-    '#          #',
-    '#          #',
-    '#1  a     X#',
-    '############'
-  ]},
-  { name: 'Relay', map: [
-    '############',
-    '#2   A   bY#',
-    '#    A     #',
-    '#    A     #',
-    '#          #',
-    '#          #',
-    '#          #',
-    '#          #',
-    '#      B   #',
-    '#      B   #',
-    '#1 a   B  X#',
-    '############'
-  ]},
-  { name: 'Special delivery', map: [
-    '###############',
-    '#2 W A  Y   ###',
-    '#    A      ###',
-    '#    A      ###',
-    '#       ##  ###',
-    '#       ##  ###',
-    '#      ###  ###',
-    '#     ####  B #',
-    '#    #####  B #',
-    '#   ######  BX#',
-    '#1a       bb###',
-    '###############'
-  ]},
-  { name: 'Stepping stones', map: [
-    '###############',
-    '#2 vvvvvvv a Y#',
-    '#   ##  ##    #',
-    '#             #',
-    '#             #',
-    '#           A #',
-    '#           A #',
-    '#           A #',
-    '#           A #',
-    '#  ##  ##   A #',
-    '#1 ^^^^^^^  AX#',
-    '###############'
-  ]},
-  { name: 'Meet in the middle', map: [
-    '##############',
-    '#   vvvvvvv Y#',
-    '#            #',
-    '#  1         #',
-    '####         #',
-    '#            #',
-    '#            #',
-    '#            #',
-    '#            #',
-    '####         #',
-    '#  2         #',
-    '#            #',
-    '#   ^^^^^^^ X#',
-    '##############'
-  ]},
-  { name: 'Your turn to climb', map: [
-    '###############',
-    '###bb       a2#',
-    '#YB  ######   #',
-    '# B  #####    #',
-    '# B  ####     #',
-    '###  ###      #',
-    '###  ##       #',
-    '###  ##       #',
-    '###      A    #',
-    '###      A    #',
-    '###   X  A K 1#',
-    '###############'
-  ]},
-  { name: 'The ladder', map: [
-    '################',
-    '#  2  vvvvvvv Y#',
-    '###            #',
-    '#              #',
-    '#   ##         #',
-    '#              #',
-    '###            #',
-    '#              #',
-    '#   ##         #',
-    '#              #',
-    '###            #',
-    '#  1  ^^^^^^^ X#',
-    '################'
-  ]},
-  { name: 'Busy doors', map: [
-    '##############',
-    '##########c###',
-    '#2 W A  b  CY#',
-    '#    A     C #',
-    '#    A     C #',
-    '#            #',
-    '# D     B    #',
-    '# D     B    #',
-    '#XD     B Ka1#',
-    '###d##########',
-    '##############'
-  ]},
-  { name: 'The gate', map: [
-    '################',
-    '#a W2 vvvvvvv Y#',
-    '###      A     #',
-    '#        A     #',
-    '#   ##   A     #',
-    '#        A     #',
-    '###      A     #',
-    '#        B     #',
-    '#   ##   B     #',
-    '#        B     #',
-    '###      B     #',
-    '#b K1 ^^^^^^^ X#',
-    '################'
-  ]}
-];
+let LEVELS = [];
 
 const SYMBOL = { a: 'circle', b: 'triangle', c: 'square', d: 'diamond' };
 
@@ -774,13 +640,15 @@ function setState(s) { S.state = s; S.stateT = 0; S.stateStamp = performance.now
 function tick() {
   S.stateT += DT;
   updateParticles(DT);
+  if (S.state === 'loading' || S.state === 'error' || S.state === 'waiting') return;
   if (S.state !== 'play') {
     for (const pid of [1, 2]) S.ready[pid] = readyHeld(pid) ? Math.min(1, S.ready[pid] + DT / 0.6) : 0;
     jumpEdge[1] = jumpEdge[2] = false;
     if (S.stateT > 0.8 && S.ready[1] >= 1 && S.ready[2] >= 1) {
       if (S.state === 'title') { loadLevel(S.startLevel); setState('play'); }
       else if (S.state === 'won') {
-        if (S.levelIndex + 1 < LEVELS.length) { loadLevel(S.levelIndex + 1); setState('play'); }
+        if (S.mode === 'playtest') { loadLevel(S.levelIndex); setState('play'); }
+        else if (S.levelIndex + 1 < LEVELS.length) { loadLevel(S.levelIndex + 1); setState('play'); }
         else setState('end');
       } else if (S.state === 'end') { loadLevel(0); setState('play'); }
     }
@@ -1065,9 +933,25 @@ function panelFor(pid, lines, alpha = 1) {
   });
   ctx.restore();
 }
+function wrapText(text, max) {
+  const out = [];
+  let line = '';
+  for (const word of String(text).split(/\s+/)) {
+    if (line && (line + ' ' + word).length > max) { out.push(line); line = word; }
+    else line = line ? line + ' ' + word : word;
+  }
+  if (line) out.push(line);
+  return out;
+}
 function drawOverlay() {
   const both = (fn) => { fn(1); fn(2); };
-  if (S.state === 'title') {
+  if (S.state === 'loading') {
+    both(pid => panelFor(pid, ['UPSIDE', 'Loading levels…']));
+  } else if (S.state === 'error') {
+    both(pid => panelFor(pid, ["Levels couldn't load", ...wrapText(S.loadError || '', 40)]));
+  } else if (S.state === 'waiting') {
+    both(pid => panelFor(pid, ['Play-test', 'Waiting for the editor…']));
+  } else if (S.state === 'title') {
     ctx.fillStyle = 'rgba(28,28,28,0.45)'; ctx.fillRect(gx, mapY, gw, mapH);
     both(pid => panelFor(pid, ['UPSIDE', pid === 1 ? 'You are BLACK. You fall toward you.' : 'You are WHITE. You fall toward you.', 'Both hold your band to start']));
     const fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
@@ -1077,13 +961,15 @@ function drawOverlay() {
     }
   } else if (S.state === 'won') {
     const last = S.levelIndex + 1 >= LEVELS.length;
-    both(pid => panelFor(pid, ['Yay! You did it together', last ? 'Both hold to celebrate' : 'Both hold for the next level']));
+    const next = S.mode === 'playtest' ? 'Both hold to play it again' : last ? 'Both hold to celebrate' : 'Both hold for the next level';
+    both(pid => panelFor(pid, ['Yay! You did it together', next]));
   } else if (S.state === 'end') {
     ctx.fillStyle = 'rgba(28,28,28,0.45)'; ctx.fillRect(gx, mapY, gw, mapH);
     both(pid => panelFor(pid, ['Best friends!', 'That is every level in this prototype.', 'Both hold to play again']));
   } else if (S.banner > 0) {
     const a = Math.min(1, S.banner / 0.5);
-    both(pid => panelFor(pid, [`Level ${S.levelIndex + 1} of ${LEVELS.length}`, S.L.name], a));
+    const title = S.mode === 'playtest' ? 'Play-test' : `Level ${S.levelIndex + 1} of ${LEVELS.length}`;
+    both(pid => panelFor(pid, [title, S.L.name], a));
   }
   // restart buttons: one per player, facing their seat, in their colour
   const u = uiSpots();
@@ -1138,21 +1024,79 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-const lv = parseInt((location.hash.match(/^#level(\d+)$/) || [])[1], 10);
-if (lv >= 1 && lv <= LEVELS.length) S.startLevel = lv - 1;
-loadLevel(S.startLevel);
-setState('title');
+/* ============================================================
+   BOOT: load levels/index.json and every level file
+   ============================================================ */
+async function fetchLevels() {
+  const F = window.UpsideLevelFormat;
+  const get = async url => {
+    const r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(`Couldn't load ${url} (error ${r.status}).`);
+    try { return await r.json(); } catch (e) { throw new Error(`${url} is not valid JSON.`); }
+  };
+  const ids = await get('levels/index.json');
+  if (!Array.isArray(ids) || !ids.length) throw new Error('levels/index.json must be a list of level ids.');
+  const defs = await Promise.all(ids.map(id => get(`levels/${id}.json`)));
+  defs.forEach((d, i) => {
+    const r = F.checkLevel(d, { fileId: ids[i] });
+    if (!r.ok) throw new Error(`levels/${ids[i]}.json: ${r.errors[0]}`);
+  });
+  return defs;
+}
+function startIndexFromHash() {
+  let m = location.hash.match(/^#level-([a-z0-9-]+)$/);
+  if (m) { const i = LEVELS.findIndex(l => l.id === m[1]); if (i >= 0) return i; }
+  m = location.hash.match(/^#level(\d+)$/);
+  if (m) { const n = +m[1]; if (n >= 1 && n <= LEVELS.length) return n - 1; }
+  return 0;
+}
+function playCustom(def) {
+  const r = window.UpsideLevelFormat.checkLevel(def);
+  if (!r.ok) return r;
+  S.mode = 'playtest';
+  LEVELS = [def];
+  loadLevel(0); setState('play'); S.banner = 1.2;
+  canvas.focus();
+  return r;
+}
+
+S.mode = 'game';
 layout();
 canvas.focus();
 requestAnimationFrame(frame);
 
-// test hook
+// test + editor hooks
 window.UPSIDE = {
-  S, LEVELS, loadLevel,
+  S, loadLevel, ready: false,
+  get LEVELS() { return LEVELS; },
   load(i) { loadLevel(i); setState('play'); },
+  loadById(id) {
+    const i = LEVELS.findIndex(l => l.id === id);
+    if (i < 0) throw new Error(`No level with id "${id}"`);
+    loadLevel(i); setState('play');
+  },
+  loadCustom(def) { return playCustom(def); },
   step(a, b) { step(Object.assign({ move: 0, jumpHeld: false, jumpPressed: false }, a), Object.assign({ move: 0, jumpHeld: false, jumpPressed: false }, b)); },
   set manual(v) { manual = v; }, get manual() { return manual; }
 };
+
+if (location.hash === '#playtest') {
+  S.mode = 'playtest'; setState('waiting'); window.UPSIDE.ready = true;
+} else {
+  setState('loading');
+  fetchLevels().then(defs => {
+    LEVELS = defs;
+    S.startLevel = startIndexFromHash();
+    loadLevel(S.startLevel);
+    setState('title');
+    window.UPSIDE.ready = true;
+  }).catch(err => {
+    console.error(err);
+    S.loadError = err.message + (location.protocol === 'file:' ? ' Open the game through a web server, for example: npx serve .' : '');
+    setState('error');
+    window.UPSIDE.ready = true;
+  });
+}
 })();
 </script>
 </body>

@@ -1,0 +1,20 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "busy-doors",
+  "name": "Busy doors",
+  "author": "yeger00",
+  "map": [
+    "##############",
+    "##########c###",
+    "#2 W A  b  CY#",
+    "#    A     C #",
+    "#    A     C #",
+    "#            #",
+    "# D     B    #",
+    "# D     B    #",
+    "#XD     B Ka1#",
+    "###d##########",
+    "##############"
+  ]
+}

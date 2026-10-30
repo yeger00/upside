@@ -4,7 +4,7 @@
   "description": "Two-player co-op puzzle game for one phone, with opposite gravity",
   "private": true,
   "scripts": {
-    "test": "node tests/levels.js && node tests/restart.js"
+    "test": "node tests/level-files.js && node tests/levels.js && node tests/restart.js"
   },
   "devDependencies": {
     "playwright": "^1.47.0"

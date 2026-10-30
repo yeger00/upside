@@ -1,0 +1,21 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "hello-other-side",
+  "name": "Hello, other side",
+  "author": "yeger00",
+  "map": [
+    "############",
+    "#2    A   Y#",
+    "#     A    #",
+    "#     A    #",
+    "#          #",
+    "#          #",
+    "#          #",
+    "#          #",
+    "#          #",
+    "#          #",
+    "#1  a     X#",
+    "############"
+  ]
+}

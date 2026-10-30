@@ -1,0 +1,21 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "special-delivery",
+  "name": "Special delivery",
+  "author": "yeger00",
+  "map": [
+    "###############",
+    "#2 W A  Y   ###",
+    "#    A      ###",
+    "#    A      ###",
+    "#       ##  ###",
+    "#       ##  ###",
+    "#      ###  ###",
+    "#     ####  B #",
+    "#    #####  B #",
+    "#   ######  BX#",
+    "#1a       bb###",
+    "###############"
+  ]
+}

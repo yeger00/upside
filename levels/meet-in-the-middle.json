@@ -1,0 +1,23 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "meet-in-the-middle",
+  "name": "Meet in the middle",
+  "author": "yeger00",
+  "map": [
+    "##############",
+    "#   vvvvvvv Y#",
+    "#            #",
+    "#  1         #",
+    "####         #",
+    "#            #",
+    "#            #",
+    "#            #",
+    "#            #",
+    "####         #",
+    "#  2         #",
+    "#            #",
+    "#   ^^^^^^^ X#",
+    "##############"
+  ]
+}

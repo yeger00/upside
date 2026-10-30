@@ -1,0 +1,21 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "your-turn-to-climb",
+  "name": "Your turn to climb",
+  "author": "yeger00",
+  "map": [
+    "###############",
+    "###bb       a2#",
+    "#YB  ######   #",
+    "# B  #####    #",
+    "# B  ####     #",
+    "###  ###      #",
+    "###  ##       #",
+    "###  ##       #",
+    "###      A    #",
+    "###      A    #",
+    "###   X  A K 1#",
+    "###############"
+  ]
+}
