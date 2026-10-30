@@ -72,8 +72,8 @@ const { startServer } = require('./server');
     out['4 Stepping stones'] = won(); out['4 pops'] = pops();
     U.loadById('stepping-stones'); run(400, () => [bp4(), I()]); run(300, () => [I(toward(S.p1, 13.5)), I()]); out['4 solo Black reaches exit'] = S.p1.atExit;
 
-    // 5 a: two-way relay; White must carry the crate back to plate c
-    U.loadById('a'); S.events.length = 0;
+    // 5 Round trip: two-way relay; White must carry the crate back to plate c
+    U.loadById('round-trip'); S.events.length = 0;
     run(150, () => [I(toward(S.p1, 6.5)), I()]);                                   // Black on b: door B opens
     run(200, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 5.5))]);                  // White through B
     run(150, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 5.5))]);                  // Black on a: door A opens
@@ -82,15 +82,15 @@ const { startServer } = require('./server');
     run(120, () => [I(toward(S.p1, 4.5)), I(-1)]);                                 // then over the crate (not pushing it)
     run(200, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 3.31))]);                 // push the crate back through A
     run(150, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 3.31))]);                 // and through B, stopping on plate c
-    out['5 a: crate on plate c'] = S.L.plates.find(pl => pl.id === 'c').pressed;
+    out['5 Round trip: crate on plate c'] = S.L.plates.find(pl => pl.id === 'c').pressed;
     run(200, () => [I(toward(S.p1, 6.5)), I(toward(S.p2, 5.5))]);                  // White back through B
     run(150, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 5.5))]);                  // and through A
     run(250, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 9.5))]);                  // White holds plate d: door D opens
     run(300, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 9.5))]);                 // Black through D and C to X
     run(200, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 10.5))]);                // White to Y
-    out['5 a'] = won(); out['5 pops'] = pops();
-    U.loadById('a'); run(600, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 10.5))]);
-    out['5 a: no teamwork'] = won() || S.p1.atExit || S.p2.atExit;
+    out['5 Round trip'] = won(); out['5 pops'] = pops();
+    U.loadById('round-trip'); run(600, () => [I(toward(S.p1, 10.5)), I(toward(S.p2, 10.5))]);
+    out['5 Round trip: no teamwork'] = won() || S.p1.atExit || S.p2.atExit;
 
     // 6 Meet in the middle
     U.loadById('meet-in-the-middle'); { let ph = 0; run(1200, () => { const p1 = S.p1, p2 = S.p2, l = p1.on === p2 && p2.on === p1;
@@ -156,11 +156,11 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 Special delivery', '4 Stepping stones', '5 a', '5 a: crate on plate c', '6 Meet in the middle',
+  const mustPass = ['1 Hello', '2 Relay', '3 Special delivery', '4 Stepping stones', '5 Round trip', '5 Round trip: crate on plate c', '6 Meet in the middle',
     '7 Your turn to climb', '8 The ladder', '9 Busy doors', '10 The gate',
     '4 stones: Black waits at door', '4 stones: White on button, door open', '8 crossed after climb',
     '10 gate open', '10 gate closed blocks'];
-  const mustFail = ['4 solo Black reaches exit', '5 a: no teamwork', '7 solo White (no crate)', '9 no teamwork'];
+  const mustFail = ['4 solo Black reaches exit', '5 Round trip: no teamwork', '7 solo White (no crate)', '9 no teamwork'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
   if (result['8 solo Black pops'] < 1) bad.push('8 solo Black should hit thorns');

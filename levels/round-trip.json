@@ -1,8 +1,8 @@
 {
   "format": "upside-level",
   "version": 1,
-  "id": "a",
-  "name": "a",
+  "id": "round-trip",
+  "name": "Round trip",
   "author": "yeger00",
   "map": [
     "############",
