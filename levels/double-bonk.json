@@ -1,0 +1,20 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "double-bonk",
+  "name": "Double bonk",
+  "author": "yeger00",
+  "notes": "Each player stands under the partner's button, pushing on their own door. Both jump at the same moment; each bonk opens the other's door. Twice.",
+  "map": [
+    "################",
+    "#2   A     C  Y#",
+    "#   bA    dC   #",
+    "################",
+    "################",
+    "################",
+    "################",
+    "#   aB    cD   #",
+    "#1   B     D  X#",
+    "################"
+  ]
+}

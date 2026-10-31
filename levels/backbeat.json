@@ -1,0 +1,26 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "backbeat",
+  "name": "Backbeat",
+  "author": "yeger00",
+  "notes": "Like Encore, but the opening is low: Black steps off first this time. Park against the far wall, let go, then On three through the last doors.",
+  "map": [
+    "################",
+    "#  aB vv#vv dCY#",
+    "#1  B   #    C #",
+    "######  #    C #",
+    "######  #    ###",
+    "######  #    ###",
+    "######  #    ###",
+    "######  #    ###",
+    "######  #    ###",
+    "######       ###",
+    "######       ###",
+    "######       ###",
+    "######  #    D #",
+    "#2  A   #    D #",
+    "#  bA ^^#^^ cDX#",
+    "################"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "encore",
+  "name": "Encore",
+  "author": "yeger00",
+  "notes": "Double bonk through the doors, then a long drop where White steps off first so the pair locks high enough for the 3-row opening, then park over the exit patch and let go.",
+  "map": [
+    "################",
+    "#  aB vv#vvY vv#",
+    "#1  B   #      #",
+    "######  #      #",
+    "######         #",
+    "######         #",
+    "######         #",
+    "######  #      #",
+    "######  #      #",
+    "######  #      #",
+    "######  #      #",
+    "######  #      #",
+    "######  #      #",
+    "#2  A   #      #",
+    "#  bA ^^#^^X ^^#",
+    "################"
+  ]
+}

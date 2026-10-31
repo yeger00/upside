@@ -288,6 +288,66 @@ const { startServer } = require('./server');
     out['16 finale: door window ms'] = windowMs(-20, 20, d => finale(d, 14, 12.6));
     out['16 finale: step-off window ms'] = windowMs(-5, 40, d => finale(0, d, 12.6));
     out['16 finale: park over thorns'] = finale(0, 14, 10.6);
+
+    // ---- hard coordination levels (windows may be tighter: at least 150 ms) ----
+    // 17 Double bonk: both jump into the partner's button at the same moment, twice (d = frames White jumps after Black)
+    const doubleBonk = (d1, d2) => {
+      U.loadById('double-bonk'); S.events.length = 0;
+      const gate = d => { let f = 0; run(70, () => { const o = [I(loc(S.p1, 1), f === Math.max(0, -d)), I(loc(S.p2, 1), f === Math.max(0, d))]; f++; return o; }); };
+      run(100, () => [I(toward(S.p1, 4.3)), I(toward(S.p2, 4.3))]); gate(d1);
+      run(100, () => [I(toward(S.p1, 9.9)), I(toward(S.p2, 9.9))]); run(30, () => [I(loc(S.p1, 1)), I(loc(S.p2, 1))]); gate(d2);
+      run(200, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
+      return won() && pops() === 0;
+    };
+    out['17 Double bonk'] = doubleBonk(0, 0);
+    out['17 Double bonk: window ms'] = windowMs(-20, 20, d => doubleBonk(d, 0));
+    out['17 Double bonk: one jumps alone'] = doubleBonk(60, 0);
+
+    // 18 Encore / 19 Backbeat: double bonk, a long drop (who goes first matters), float, let go
+    const bonkThenDrop = (id, dGate, firstSteps, dDrop) => {        // firstSteps: 'white' or 'black' steps off dDrop frames earlier
+      U.loadById(id); S.events.length = 0;
+      run(100, () => [I(toward(S.p1, 3.3)), I(toward(S.p2, 3.3))]);
+      run(20, () => [I(loc(S.p1, 1)), I(loc(S.p2, 1))]);
+      let f = 0; run(70, () => { const go = p => cx(p) > 4.9 ? toward(p, 5.6) : loc(p, 1); const o = [I(go(S.p1), f === Math.max(0, -dGate)), I(go(S.p2), f === Math.max(0, dGate))]; f++; return o; });
+      run(40, () => [I(toward(S.p1, 5.6)), I(toward(S.p2, 5.6))]);
+      const wFirst = firstSteps === 'white' ? dDrop : -dDrop;
+      f = 0; run(150, () => { const o = [stepOff(S.p1, 6, f >= Math.max(0, wFirst)), stepOff(S.p2, 6, f >= Math.max(0, -wFirst))]; f++; return o; });
+      return locked();
+    };
+    const encore = (dGate, dDrop, park) => {
+      if (!bonkThenDrop('encore', dGate, 'white', dDrop)) return false;
+      let ph = 0;
+      run(900, () => {
+        if (ph === 0 && cx(S.p1) >= park) { ph = 1; return [I(0), I(0)]; }
+        if (ph >= 1 && ph < 8) { ph++; return [I(0), I(0)]; }
+        if (ph === 8) { ph = 9; return [I(0, true), I(0)]; }
+        if (ph === 9) return (S.p1.grounded && S.p2.grounded) ? [I(toward(S.p1, 11.5)), I(toward(S.p2, 11.5))] : [I(0), I(0)];
+        return [I(1), I(-1)]; });
+      return won() && pops() === 0;
+    };
+    out['18 Encore'] = encore(0, 22, 11.9);
+    out['18 Encore: drop window ms'] = windowMs(-10, 60, d => encore(0, d, 11.9));
+    out['18 Encore: door window ms'] = windowMs(-20, 20, d => encore(d, 22, 11.9));
+    out['18 Encore: step off together'] = encore(0, 0, 11.9);
+    const backbeat = (dGate, dDrop, dEnd) => {
+      if (!bonkThenDrop('backbeat', dGate, 'black', dDrop)) return false;
+      let ph = 0;
+      run(600, () => {
+        if (ph === 0 && cx(S.p1) > 12.4) ph = 1;                                      // pushed up against the far wall
+        if (ph >= 1 && ph < 8) { ph++; return [I(0), I(0)]; }
+        if (ph === 8) { ph = 9; return [I(0, true), I(0)]; }
+        if (ph === 9) return (S.p1.grounded && S.p2.grounded) ? [I(toward(S.p1, 12.5)), I(toward(S.p2, 12.5))] : [I(0), I(0)];
+        return [I(1), I(-1)]; });
+      run(60, () => [I(toward(S.p1, 12.5)), I(toward(S.p2, 12.5))]);
+      let f = 0;
+      run(300, () => { const o = [f >= Math.max(0, -dEnd) ? I(toward(S.p1, 14.5)) : I(toward(S.p1, 12.5)),
+                                  f >= Math.max(0, dEnd) ? I(toward(S.p2, 14.5)) : I(toward(S.p2, 12.5))]; f++; return o; });
+      return won() && pops() === 0;
+    };
+    out['19 Backbeat'] = backbeat(0, 21, 0);
+    out['19 Backbeat: drop window ms'] = windowMs(-10, 60, d => backbeat(0, d, 0));
+    out['19 Backbeat: last doors window ms'] = windowMs(-20, 20, d => backbeat(0, 21, d));
+    out['19 Backbeat: White steps off first'] = (() => { bonkThenDrop('backbeat', 0, 'white', 21); let r = false; run(300, () => [I(1), I(-1)]); return won(); })();
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -295,15 +355,17 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '16 All together now', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
+  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '16 All together now', '17 Double bonk', '18 Encore', '19 Backbeat', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
     '11 Your turn to climb', '12 The ladder', '13 Busy doors', '14 The gate', '15 The long way home', '15 long way: crate dropped to Black', '15 long way: crate on plate a',
     '5 stones: Black waits at door', '5 stones: White on button, door open', '12 crossed after climb',
     '14 gate open', '14 gate closed blocks'];
-  const mustFail = ['3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '16 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
+  const mustFail = ['17 Double bonk: one jumps alone', '18 Encore: step off together', '19 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '16 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
   for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '16 finale: door window ms', '16 finale: step-off window ms'])
     if (!(result[k] >= 250)) bad.push(`${k} is ${result[k]}; coordination windows must be at least 250 ms`);
+  for (const k of ['17 Double bonk: window ms', '18 Encore: drop window ms', '18 Encore: door window ms', '19 Backbeat: drop window ms', '19 Backbeat: last doors window ms'])
+    if (!(result[k] >= 150)) bad.push(`${k} is ${result[k]}; hard coordination windows must be at least 150 ms`);
   if (result['15 pops'] !== 0) bad.push('15 scripted solution should not hit thorns');
   if (result['12 solo Black pops'] < 1) bad.push('12 solo Black should hit thorns');
   if (bad.length) { console.error('FAILED:', bad); process.exitCode = 1; } else console.log('All level checks passed');
