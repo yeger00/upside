@@ -48,16 +48,22 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 |---|---|---|
 | 1 | Hello, other side | Black holds a plate for White's door |
 | 2 | Relay | Take turns holding plates |
-| 3 | Special delivery | White passes a crate down; Black bumps it and it turns black |
-| 4 | Stepping stones | Floating blocks over thorns; White's button opens Black's door |
-| 5 | Round trip | A two-way relay: White carries the white crate back to hold Black's last door |
-| 6 | Swap places | Jump past each other so Black lands on White's feet; teaches connecting |
-| 7 | Meet in the middle | Foot-to-foot float across the thorns |
-| 8 | Your turn to climb | Level 3 turned 180°, so White climbs and bumps |
-| 9 | The ladder | Climb past each other to get crossed, then float |
-| 10 | Busy doors | Four doors, two crates, two sockets; order matters |
-| 11 | The gate | Ladder, plus two crates holding a two-part gate open |
-| 12 | The long way home | The white crate travels down to Black, back up, and all the way to White's start |
+| 3 | On three | Each plate opens the partner's door: step through together *(window ≈ 0.32 s)* |
+| 4 | Special delivery | White passes a crate down; Black bumps it and it turns black |
+| 5 | Stepping stones | Floating blocks over thorns; White's button opens Black's door |
+| 6 | Bonk the button | Buttons you can only press by jumping into them; the partner must already be pushing on the door |
+| 7 | Round trip | A two-way relay: White carries the white crate back to hold Black's last door |
+| 8 | Swap places | Jump past each other so Black lands on White's feet; teaches connecting |
+| 9 | Meet in the middle | Foot-to-foot float across the thorns |
+| 10 | Off-beat | White steps off a beat before Black so the pair locks high enough for the opening *(window ≈ 0.37 s)* |
+| 11 | Your turn to climb | Level 4 turned 180°, so White climbs and bumps |
+| 12 | The ladder | Climb past each other to get crossed, then float |
+| 13 | Busy doors | Four doors, two crates, two sockets; order matters |
+| 14 | The gate | Ladder, plus two crates holding a two-part gate open |
+| 15 | The long way home | The white crate travels down to Black, back up, and all the way to White's start |
+| 16 | All together now | On three, off-beat step-off, float, then both stop over the safe patch and let go |
+
+**Coordination levels** (3, 6, 10, 16) need both players to act at the same moment. The tests measure each one's timing window, meaning how far apart the two players' actions can be and still work, and fail if it drops below 0.25 s.
 
 ## Level files
 

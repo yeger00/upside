@@ -1,0 +1,20 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "bonk-the-button",
+  "name": "Bonk the button",
+  "author": "yeger00",
+  "notes": "Buttons can only be pressed by jumping into them; the partner must already be pushing against the door.",
+  "map": [
+    "##############",
+    "#2  A       Y#",
+    "#   A   b    #",
+    "##############",
+    "##############",
+    "##############",
+    "##############",
+    "#  a  B      #",
+    "#1    B     X#",
+    "##############"
+  ]
+}

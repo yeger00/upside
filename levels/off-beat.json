@@ -1,0 +1,24 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "off-beat",
+  "name": "Off-beat",
+  "author": "yeger00",
+  "notes": "White steps off a beat before Black so the pair locks high enough to float through the opening.",
+  "map": [
+    "################",
+    "#   vvvvv#vvvvY#",
+    "#        #     #",
+    "#  1     #     #",
+    "####           #",
+    "#              #",
+    "#              #",
+    "#              #",
+    "#        #     #",
+    "#        #     #",
+    "####     #     #",
+    "#  2     #     #",
+    "#   ^^^^^#^^^^X#",
+    "################"
+  ]
+}

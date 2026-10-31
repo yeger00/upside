@@ -1,0 +1,25 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "all-together-now",
+  "name": "All together now",
+  "author": "yeger00",
+  "notes": "Finale: On three through the doors, Off-beat step-off (White first), float through the opening, then both stop over the safe patch and let go onto the exits.",
+  "map": [
+    "################",
+    "#    B vv#vvY v#",
+    "#    B   #     #",
+    "#1  aB   #     #",
+    "#######        #",
+    "#              #",
+    "#              #",
+    "#              #",
+    "#        #     #",
+    "#        #     #",
+    "#######  #     #",
+    "#2  bA   #     #",
+    "#    A   #     #",
+    "#    A ^^#^^X ^#",
+    "################"
+  ]
+}

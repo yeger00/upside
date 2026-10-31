@@ -1,0 +1,20 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "on-three",
+  "name": "On three",
+  "author": "yeger00",
+  "notes": "Each plate opens the partner's door. Step off together, or one door shuts too early.",
+  "map": [
+    "############",
+    "#2      bAY#",
+    "#        A #",
+    "#        A #",
+    "#          #",
+    "#          #",
+    "#        B #",
+    "#        B #",
+    "#1      aBX#",
+    "############"
+  ]
+}
