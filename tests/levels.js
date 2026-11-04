@@ -348,6 +348,22 @@ const { startServer } = require('./server');
     out['19 Backbeat: drop window ms'] = windowMs(-10, 60, d => backbeat(0, d, 0));
     out['19 Backbeat: last doors window ms'] = windowMs(-20, 20, d => backbeat(0, 21, d));
     out['19 Backbeat: White steps off first'] = (() => { bonkThenDrop('backbeat', 0, 'white', 21); let r = false; run(300, () => [I(1), I(-1)]); return won(); })();
+
+    // 20 Thread the needle: lock foot to foot, float to the narrow opening (d = frames White steps off before Black)
+    const needle = d => {
+      U.loadById('thread-the-needle'); S.events.length = 0;
+      run(120, () => [I(toward(S.p1, 3.6)), I(toward(S.p2, 3.6))]);
+      let f = 0, ph = 0;
+      run(150, () => { const o = [stepOff(S.p1, 4, f >= Math.max(0, d)), stepOff(S.p2, 4, f >= Math.max(0, -d))]; f++; return o; });
+      if (locked()) run(900, () => { if (ph === 0 && cx(S.p1) > 11.6) { ph = 1; return [I(0, true), I()]; }
+        if (ph === 1) return [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]; return [I(1), I(-1)]; });
+      return won() && pops() === 0;
+    };
+    out['20 Thread the needle'] = needle(5);
+    out['20 Thread the needle: window ms'] = windowMs(-10, 45, needle);
+    U.loadById('thread-the-needle'); S.events.length = 0;
+    run(400, () => [I(toward(S.p1, 14.5)), I()]);
+    out['20 Thread the needle: Black alone'] = S.p1.atExit || won();
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -355,14 +371,14 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '16 All together now', '17 Double bonk', '18 Encore', '19 Backbeat', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
+  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '16 All together now', '17 Double bonk', '18 Encore', '19 Backbeat', '20 Thread the needle', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
     '11 Your turn to climb', '12 The ladder', '13 Busy doors', '14 The gate', '15 The long way home', '15 long way: crate dropped to Black', '15 long way: crate on plate a',
     '5 stones: Black waits at door', '5 stones: White on button, door open', '12 crossed after climb',
     '14 gate open', '14 gate closed blocks'];
-  const mustFail = ['17 Double bonk: one jumps alone', '18 Encore: step off together', '19 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '16 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
+  const mustFail = ['20 Thread the needle: Black alone', '17 Double bonk: one jumps alone', '18 Encore: step off together', '19 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '16 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
-  for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '16 finale: door window ms', '16 finale: step-off window ms'])
+  for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '20 Thread the needle: window ms', '16 finale: door window ms', '16 finale: step-off window ms'])
     if (!(result[k] >= 250)) bad.push(`${k} is ${result[k]}; coordination windows must be at least 250 ms`);
   for (const k of ['17 Double bonk: window ms', '18 Encore: drop window ms', '18 Encore: door window ms', '19 Backbeat: drop window ms', '19 Backbeat: last doors window ms'])
     if (!(result[k] >= 150)) bad.push(`${k} is ${result[k]}; hard coordination windows must be at least 150 ms`);
