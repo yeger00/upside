@@ -160,8 +160,55 @@ const { startServer } = require('./server');
     run(120, () => [I(toward(S.p1, 5.35)), I(toward(S.p2, 5.35))]);
     floatAcross(); out['14 gate closed blocks'] = !won() && cx(S.p1) < 9;
 
-    // 15 The long way home: the white crate goes down to Black's side, back up, and over to plate a
+    // 15 The long way home: the white crate goes down onto the top block, Black pushes it left along the top,
+    // White jumps onto it so it rises to the safe ceiling, then pushes it onto plate a
     { U.loadById('the-long-way-home'); S.events.length = 0;
+      const idle = I(), W = () => S.crates[0];
+      const route = (p, steps, n = 600) => { let dir = 0; run(n, () => {
+        const sv = p.g > 0 ? bot(p) : top(p); let inp = I(loc(p, dir));
+        if (p.grounded) for (const [v, x, d] of steps) if (near(sv, v)) {
+          if (d === 0 || Math.abs(cx(p) - x) > 0.1) inp = I(toward(p, x)); else { dir = d; inp = I(loc(p, d), true); }
+        }
+        return p === S.p1 ? [inp, idle] : [idle, inp]; }); };
+      const hop = (p, x, dir, n) => { let t = 0; return () => {
+        if (t > 0) { t--; return I(loc(p, dir)); }
+        if (Math.abs(cx(p) - x) > 0.1) return I(toward(p, x));
+        t = n; return I(loc(p, dir), true); }; };
+      // White: jump the thorns, hop over the crate, push it back to the very edge of the thorns
+      { const h = hop(S.p2, 6.3, 1, 40); run(90, () => [idle, h()]); }
+      run(60, () => [idle, I(toward(S.p2, 10.2))]);
+      run(8, () => [idle, I(0, true)]); run(70, () => [idle, I(loc(S.p2, 1))]);
+      run(200, () => [idle, W().x > 8.0 ? I(loc(S.p2, -1)) : I(0)]);
+      // Black climbs to the top block and bumps the crate down onto it, steps to its right and pushes it left
+      route(S.p1, [[13, 1.4, 1], [11, 3.4, 1], [10, 6.4, 1], [9, 10.3, 1], [7, 11.4, -1], [5, 8.0, 0]]);
+      { let f = 0; run(60, () => [I(0, f++ === 0), idle]); }
+      out['15 long way: crate dropped to Black'] = W().owner === 1;
+      run(60, () => [I(toward(S.p1, 9.25)), idle]);
+      run(200, () => [I(toward(S.p1, 5.91)), idle]);
+      // White: running jump back over the thorns, jump down onto the crate (white again: it rises), push it onto plate a
+      run(30, () => [idle, I(toward(S.p2, 9.6))]);
+      { let t = -1; run(140, () => { const p = S.p2; if (t < 0 && cx(p) <= 9.5) t = 70; if (t === 70) { t--; return [idle, I(loc(p, -1), true)]; } if (t > 0) t--; return [idle, I(loc(p, -1))]; }); }
+      run(80, () => [idle, I(toward(S.p2, W().x + 0.5))]);
+      { let f = 0; run(60, () => [idle, I(0, f++ === 0)]); }
+      run(60, () => [idle, I(toward(S.p2, W().x + 1.4))]);
+      run(250, () => [idle, I(toward(S.p2, 3.31))]);
+      out['15 long way: crate on plate a'] = S.L.plates.find(pl => pl.id === 'a').pressed;
+      // Black down to plate c (door C opens); White over the thorns to Y; Black along the floor to X
+      run(80, () => [I(toward(S.p1, 9.8)), idle]);
+      run(400, () => [I(toward(S.p1, 1.4)), I(toward(S.p2, 3.31))]);
+      run(120, () => [I(toward(S.p1, 2.5)), I(toward(S.p2, 3.31))]);
+      { const h = hop(S.p2, 6.3, 1, 70); run(110, () => [I(toward(S.p1, 2.5)), h()]); }
+      run(300, () => [I(toward(S.p1, 2.5)), I(toward(S.p2, 14.5))]);
+      run(400, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
+      out['15 The long way home'] = won(); out['15 pops'] = pops();
+      U.loadById('the-long-way-home'); run(600, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
+      out['15 long way: no teamwork'] = won();
+      U.loadById('the-long-way-home'); run(600, () => [I(toward(S.p1, 14.5)), idle]);
+      out['15 long way: Black alone reaches exit'] = S.p1.atExit;
+    }
+    // 16 The longer way home: same crate route as before, but Black's door is solid at floor level,
+    // so Black finally climbs back to the long bar and leaves through the top of door A
+    { U.loadById('the-longer-way-home'); S.events.length = 0;
       const idle = I(), W = () => S.crates[0];
       // on a surface (Black: feet y, White: head y), walk to x then jump in dir; dir 0 = stop there
       const route = (p, steps, n = 600) => { let dir = 0; run(n, () => {
@@ -182,7 +229,7 @@ const { startServer } = require('./server');
       // Black climbs to the top block and bumps the crate: it turns black and drops onto bar r9
       route(S.p1, [[13, 1.4, 1], [11, 3.4, 1], [10, 6.4, 1], [9, 10.3, 1], [7, 11.4, -1], [5, 8.4, 0]]);
       { const h = hop(S.p1, 8.4, 1, 30); run(100, () => [h(), idle]); }
-      out['15 long way: crate dropped to Black'] = W().owner === 1;
+      out['16 longer way: crate dropped to Black'] = W().owner === 1;
       run(80, () => [I(toward(S.p1, 10.6)), idle]);
       run(200, () => [I(toward(S.p1, 8.31)), idle]);                               // push it left under block r5
       // White: running jump back over the thorns, then down: under r2, under r4, under r5
@@ -207,17 +254,16 @@ const { startServer } = require('./server');
       run(120, () => [idle, I(toward(S.p2, 4.3))]);
       run(80, () => [idle, I(toward(S.p2, 5.6))]);                               // up to the ceiling, right of the crate
       run(200, () => [idle, I(toward(S.p2, 3.31))]);                             // push it onto plate a: door A stays open
-      out['15 long way: crate on plate a'] = S.L.plates.find(pl => pl.id === 'a').pressed;
+      out['16 longer way: crate on plate a'] = S.L.plates.find(pl => pl.id === 'a').pressed;
       run(400, () => [I(toward(S.p1, 1.4)), I(toward(S.p2, 3.31))]);             // Black back down to the floor
       run(120, () => [I(toward(S.p1, 2.5)), I(toward(S.p2, 3.31))]);             // Black holds plate c: door C opens
       { const h = hop(S.p2, 6.3, 1, 70); run(110, () => [I(toward(S.p1, 2.5)), h()]); }
       run(300, () => [I(toward(S.p1, 2.5)), I(toward(S.p2, 14.5))]);             // White to Y
-      run(400, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);            // Black to X
-      out['15 The long way home'] = won(); out['15 pops'] = pops();
-      U.loadById('the-long-way-home'); run(600, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
-      out['15 long way: no teamwork'] = won();
-      U.loadById('the-long-way-home'); run(600, () => [I(toward(S.p1, 14.5)), idle]);
-      out['15 long way: Black alone reaches exit'] = S.p1.atExit;
+      route(S.p1, [[13, 1.4, 1], [11, 3.4, 1], [10, 6.4, 1], [9, 12.3, 0]], 400); // Black climbs back to the long bar
+      run(300, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);            // through the top of door A, drop to X
+      out['16 The longer way home'] = won(); out['16 pops'] = pops();
+      U.loadById('the-longer-way-home'); run(600, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
+      out['16 longer way: no teamwork'] = won();
     }
 
     // ---- coordination levels: each also measures its timing window (ms of slack between the two players) ----
@@ -267,7 +313,7 @@ const { startServer } = require('./server');
     out['10 Off-beat: window ms'] = windowMs(-10, 45, offBeat);
     out['10 Off-beat: both together'] = offBeat(0);
 
-    // 16 All together now: On three, Off-beat, float, park over the safe patch, let go
+    // 17 All together now: On three, Off-beat, float, park over the safe patch, let go
     const finale = (dDoor, dDrop, park) => {
       U.loadById('all-together-now'); S.events.length = 0;
       run(120, () => [I(toward(S.p1, 4.5)), I(toward(S.p2, 4.5))]);
@@ -284,13 +330,13 @@ const { startServer } = require('./server');
         return [I(1), I(-1)]; });
       return won() && pops() === 0;
     };
-    out['16 All together now'] = finale(0, 14, 12.6);
-    out['16 finale: door window ms'] = windowMs(-20, 20, d => finale(d, 14, 12.6));
-    out['16 finale: step-off window ms'] = windowMs(-5, 40, d => finale(0, d, 12.6));
-    out['16 finale: park over thorns'] = finale(0, 14, 10.6);
+    out['17 All together now'] = finale(0, 14, 12.6);
+    out['17 finale: door window ms'] = windowMs(-20, 20, d => finale(d, 14, 12.6));
+    out['17 finale: step-off window ms'] = windowMs(-5, 40, d => finale(0, d, 12.6));
+    out['17 finale: park over thorns'] = finale(0, 14, 10.6);
 
     // ---- hard coordination levels (windows may be tighter: at least 150 ms) ----
-    // 17 Double bonk: both jump into the partner's button at the same moment, twice (d = frames White jumps after Black)
+    // 18 Double bonk: both jump into the partner's button at the same moment, twice (d = frames White jumps after Black)
     const doubleBonk = (d1, d2) => {
       U.loadById('double-bonk'); S.events.length = 0;
       const gate = d => { let f = 0; run(70, () => { const o = [I(loc(S.p1, 1), f === Math.max(0, -d)), I(loc(S.p2, 1), f === Math.max(0, d))]; f++; return o; }); };
@@ -299,11 +345,11 @@ const { startServer } = require('./server');
       run(200, () => [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]);
       return won() && pops() === 0;
     };
-    out['17 Double bonk'] = doubleBonk(0, 0);
-    out['17 Double bonk: window ms'] = windowMs(-20, 20, d => doubleBonk(d, 0));
-    out['17 Double bonk: one jumps alone'] = doubleBonk(60, 0);
+    out['18 Double bonk'] = doubleBonk(0, 0);
+    out['18 Double bonk: window ms'] = windowMs(-20, 20, d => doubleBonk(d, 0));
+    out['18 Double bonk: one jumps alone'] = doubleBonk(60, 0);
 
-    // 18 Encore / 19 Backbeat: double bonk, a long drop (who goes first matters), float, let go
+    // 19 Encore / 19 Backbeat: double bonk, a long drop (who goes first matters), float, let go
     const bonkThenDrop = (id, dGate, firstSteps, dDrop) => {        // firstSteps: 'white' or 'black' steps off dDrop frames earlier
       U.loadById(id); S.events.length = 0;
       run(100, () => [I(toward(S.p1, 3.3)), I(toward(S.p2, 3.3))]);
@@ -325,10 +371,10 @@ const { startServer } = require('./server');
         return [I(1), I(-1)]; });
       return won() && pops() === 0;
     };
-    out['18 Encore'] = encore(0, 22, 11.9);
-    out['18 Encore: drop window ms'] = windowMs(-10, 60, d => encore(0, d, 11.9));
-    out['18 Encore: door window ms'] = windowMs(-20, 20, d => encore(d, 22, 11.9));
-    out['18 Encore: step off together'] = encore(0, 0, 11.9);
+    out['19 Encore'] = encore(0, 22, 11.9);
+    out['19 Encore: drop window ms'] = windowMs(-10, 60, d => encore(0, d, 11.9));
+    out['19 Encore: door window ms'] = windowMs(-20, 20, d => encore(d, 22, 11.9));
+    out['19 Encore: step off together'] = encore(0, 0, 11.9);
     const backbeat = (dGate, dDrop, dEnd) => {
       if (!bonkThenDrop('backbeat', dGate, 'black', dDrop)) return false;
       let ph = 0;
@@ -344,12 +390,12 @@ const { startServer } = require('./server');
                                   f >= Math.max(0, dEnd) ? I(toward(S.p2, 14.5)) : I(toward(S.p2, 12.5))]; f++; return o; });
       return won() && pops() === 0;
     };
-    out['19 Backbeat'] = backbeat(0, 21, 0);
-    out['19 Backbeat: drop window ms'] = windowMs(-10, 60, d => backbeat(0, d, 0));
-    out['19 Backbeat: last doors window ms'] = windowMs(-20, 20, d => backbeat(0, 21, d));
-    out['19 Backbeat: White steps off first'] = (() => { bonkThenDrop('backbeat', 0, 'white', 21); let r = false; run(300, () => [I(1), I(-1)]); return won(); })();
+    out['20 Backbeat'] = backbeat(0, 21, 0);
+    out['20 Backbeat: drop window ms'] = windowMs(-10, 60, d => backbeat(0, d, 0));
+    out['20 Backbeat: last doors window ms'] = windowMs(-20, 20, d => backbeat(0, 21, d));
+    out['20 Backbeat: White steps off first'] = (() => { bonkThenDrop('backbeat', 0, 'white', 21); let r = false; run(300, () => [I(1), I(-1)]); return won(); })();
 
-    // 20 Thread the needle: lock foot to foot (d = frames White steps off before Black), float to the narrow opening;
+    // 21 Thread the needle: lock foot to foot (d = frames White steps off before Black), float to the narrow opening;
     // Black drops to its exit, White lands under the shelf, walks back off its left end and falls up behind it
     const needle = d => {
       U.loadById('thread-the-needle'); S.events.length = 0;
@@ -368,11 +414,11 @@ const { startServer } = require('./server');
         return [I(1), I(-1)]; });
       return won() && pops() === 0;
     };
-    out['20 Thread the needle'] = needle(1);
-    out['20 Thread the needle: window ms'] = windowMs(-10, 45, needle);
+    out['21 Thread the needle'] = needle(1);
+    out['21 Thread the needle: window ms'] = windowMs(-10, 45, needle);
     U.loadById('thread-the-needle'); S.events.length = 0;
     run(400, () => [I(toward(S.p1, 14.5)), I()]);
-    out['20 Thread the needle: Black alone'] = S.p1.atExit || won();
+    out['21 Thread the needle: Black alone'] = S.p1.atExit || won();
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -380,17 +426,18 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '16 All together now', '17 Double bonk', '18 Encore', '19 Backbeat', '20 Thread the needle', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
-    '11 Your turn to climb', '12 The ladder', '13 Busy doors', '14 The gate', '15 The long way home', '15 long way: crate dropped to Black', '15 long way: crate on plate a',
+  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '17 All together now', '18 Double bonk', '19 Encore', '20 Backbeat', '21 Thread the needle', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
+    '11 Your turn to climb', '12 The ladder', '13 Busy doors', '14 The gate', '15 The long way home', '15 long way: crate dropped to Black', '15 long way: crate on plate a', '16 The longer way home', '16 longer way: crate dropped to Black', '16 longer way: crate on plate a',
     '5 stones: Black waits at door', '5 stones: White on button, door open', '12 crossed after climb',
     '14 gate open', '14 gate closed blocks'];
-  const mustFail = ['20 Thread the needle: Black alone', '17 Double bonk: one jumps alone', '18 Encore: step off together', '19 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '16 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
+  const mustFail = ['16 longer way: no teamwork', '21 Thread the needle: Black alone', '18 Double bonk: one jumps alone', '19 Encore: step off together', '20 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '17 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
-  for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '16 finale: door window ms', '16 finale: step-off window ms'])
+  for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '17 finale: door window ms', '17 finale: step-off window ms'])
     if (!(result[k] >= 250)) bad.push(`${k} is ${result[k]}; coordination windows must be at least 250 ms`);
-  for (const k of ['20 Thread the needle: window ms', '17 Double bonk: window ms', '18 Encore: drop window ms', '18 Encore: door window ms', '19 Backbeat: drop window ms', '19 Backbeat: last doors window ms'])
+  for (const k of ['21 Thread the needle: window ms', '18 Double bonk: window ms', '19 Encore: drop window ms', '19 Encore: door window ms', '20 Backbeat: drop window ms', '20 Backbeat: last doors window ms'])
     if (!(result[k] >= 150)) bad.push(`${k} is ${result[k]}; hard coordination windows must be at least 150 ms`);
+  if (result['16 pops'] !== 0) bad.push('16 scripted solution should not hit thorns');
   if (result['15 pops'] !== 0) bad.push('15 scripted solution should not hit thorns');
   if (result['12 solo Black pops'] < 1) bad.push('12 solo Black should hit thorns');
   if (bad.length) { console.error('FAILED:', bad); process.exitCode = 1; } else console.log('All level checks passed');

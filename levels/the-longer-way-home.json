@@ -1,0 +1,23 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "the-longer-way-home",
+  "name": "The longer way home",
+  "author": "yeger00",
+  "map": [
+    "################",
+    "#2a    vv  W CY#",
+    "# ##         C #",
+    "#            C #",
+    "# ##         C #",
+    "#    ####    C #",
+    "#            C #",
+    "#          ##A #",
+    "#            A #",
+    "#      ######A #",
+    "#   ###      # #",
+    "# ##         # #",
+    "#1c          #X#",
+    "################"
+  ]
+}
