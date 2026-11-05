@@ -349,17 +349,26 @@ const { startServer } = require('./server');
     out['19 Backbeat: last doors window ms'] = windowMs(-20, 20, d => backbeat(0, 21, d));
     out['19 Backbeat: White steps off first'] = (() => { bonkThenDrop('backbeat', 0, 'white', 21); let r = false; run(300, () => [I(1), I(-1)]); return won(); })();
 
-    // 20 Thread the needle: lock foot to foot, float to the narrow opening (d = frames White steps off before Black)
+    // 20 Thread the needle: lock foot to foot (d = frames White steps off before Black), float to the narrow opening;
+    // Black drops to its exit, White lands under the shelf, walks back off its left end and falls up behind it
     const needle = d => {
       U.loadById('thread-the-needle'); S.events.length = 0;
       run(120, () => [I(toward(S.p1, 3.6)), I(toward(S.p2, 3.6))]);
-      let f = 0, ph = 0;
+      let f = 0, ph = 0, st = 0;
       run(150, () => { const o = [stepOff(S.p1, 4, f >= Math.max(0, d)), stepOff(S.p2, 4, f >= Math.max(0, -d))]; f++; return o; });
-      if (locked()) run(900, () => { if (ph === 0 && cx(S.p1) > 11.6) { ph = 1; return [I(0, true), I()]; }
-        if (ph === 1) return [I(toward(S.p1, 14.5)), I(toward(S.p2, 14.5))]; return [I(1), I(-1)]; });
+      if (!locked()) return false;
+      const whiteFinish = () => { const p = S.p2;
+        if (st === 0) { if (p.grounded && top(p) > 5.5) st = 1; return I(0); }
+        if (st === 1) { if (!p.grounded) { st = 2; return I(loc(p, 1)); } return I(toward(p, 8.4)); }
+        if (st === 2) { if (p.grounded && top(p) < 1.5) st = 3; return I(loc(p, 1)); }
+        return I(toward(p, 14.5)); };
+      run(1500, () => {
+        if (ph === 0 && (cx(S.p1) > 12.5 || (S.p1.blockedX && S.p2.blockedX))) { ph = 1; return [I(0, true), I(0)]; }
+        if (ph === 1) return [I(toward(S.p1, 14.5)), whiteFinish()];
+        return [I(1), I(-1)]; });
       return won() && pops() === 0;
     };
-    out['20 Thread the needle'] = needle(5);
+    out['20 Thread the needle'] = needle(1);
     out['20 Thread the needle: window ms'] = windowMs(-10, 45, needle);
     U.loadById('thread-the-needle'); S.events.length = 0;
     run(400, () => [I(toward(S.p1, 14.5)), I()]);
@@ -378,9 +387,9 @@ const { startServer } = require('./server');
   const mustFail = ['20 Thread the needle: Black alone', '17 Double bonk: one jumps alone', '18 Encore: step off together', '19 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '16 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
-  for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '20 Thread the needle: window ms', '16 finale: door window ms', '16 finale: step-off window ms'])
+  for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '16 finale: door window ms', '16 finale: step-off window ms'])
     if (!(result[k] >= 250)) bad.push(`${k} is ${result[k]}; coordination windows must be at least 250 ms`);
-  for (const k of ['17 Double bonk: window ms', '18 Encore: drop window ms', '18 Encore: door window ms', '19 Backbeat: drop window ms', '19 Backbeat: last doors window ms'])
+  for (const k of ['20 Thread the needle: window ms', '17 Double bonk: window ms', '18 Encore: drop window ms', '18 Encore: door window ms', '19 Backbeat: drop window ms', '19 Backbeat: last doors window ms'])
     if (!(result[k] >= 150)) bad.push(`${k} is ${result[k]}; hard coordination windows must be at least 150 ms`);
   if (result['15 pops'] !== 0) bad.push('15 scripted solution should not hit thorns');
   if (result['12 solo Black pops'] < 1) bad.push('12 solo Black should hit thorns');

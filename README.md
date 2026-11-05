@@ -65,9 +65,9 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 | 17 | Double bonk | Both jump into each other's buttons at the same moment, twice *(window ≈ 0.32 s)* |
 | 18 | Encore | Double bonk, a long drop with White first through a narrow opening, park over the exits *(drop window ≈ 0.2 s)* |
 | 19 | Backbeat | Like Encore, but Black must go first; finish with On three *(drop window ≈ 0.2 s)* |
-| 20 | Thread the needle | Off-beat with a 2-row opening; a low lock still works if White follows by falling up through it *(window ≈ 0.33 s)* |
+| 20 | Thread the needle | Lock through a 2-row opening; White finishes by falling up behind the shelf onto the ceiling *(window ≈ 0.18 s)* |
 
-**Coordination levels** (3, 6, 10, 16) need both players to act at the same moment. The tests measure each one's timing window, meaning how far apart the two players' actions can be and still work, and fail if it drops below 0.25 s. The **hard levels** (17–19) chain several of these moments with no checkpoint in between, and their windows may be as tight as 0.15 s.
+**Coordination levels** (3, 6, 10, 16) need both players to act at the same moment. The tests measure each one's timing window, meaning how far apart the two players' actions can be and still work, and fail if it drops below 0.25 s. The **hard levels** (17–20) chain several of these moments with no checkpoint in between, and their windows may be as tight as 0.15 s.
 
 ## Level files
 
