@@ -1,0 +1,24 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "flip-the-tower",
+  "name": "Flip the tower",
+  "author": "yeger00",
+  "notes": "Both players need the same two-crate tower, one after the other. White lifts a black crate to the ceiling and slides it to the wall; Black slides the other one under it, climbs on, and bumps the top one down onto it. White holds plate c so Black can jump from the tower up through the hatch. Then White flips the tower to the ceiling, top crate first, and Black holds plate d so White can jump down through the trapdoor. Plate d before the flip drops the tower; plate c after it floats the tower away.",
+  "map": [
+    "################",
+    "#########      #",
+    "#########      #",
+    "#########      #",
+    "#########C X  d#",
+    "#2 c      ######",
+    "#         ######",
+    "#         ######",
+    "#1  K  K  ######",
+    "#########D   Y #",
+    "#########      #",
+    "#########      #",
+    "#########      #",
+    "################"
+  ]
+}
