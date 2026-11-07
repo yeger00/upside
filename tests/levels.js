@@ -607,6 +607,80 @@ const { startServer } = require('./server');
     out['26 Flip the tower: plate c after the flip'] = flipTower('late-c');
     out['26 Flip the tower: one crate gets Black up'] = flipSweep('one-black');
     out['26 Flip the tower: one crate gets White down'] = flipSweep('one-white');
+    // 27 Half flip: Black's crate rides up the hatch ahead of him; White flips only the top crate, so the bottom one drops for him
+    let halfDown = false;
+    const halfFlip = mode => {
+      U.loadById('half-flip'); S.events.length = 0;
+      const idle = I(), [K2, K3, K6] = S.crates.filter(c => c.owner === 1).sort((a, b) => a.x - b.x);
+      const Bw = () => I(toward(S.p1, 10.5)), Wc = () => I(toward(S.p2, 1.5));
+      const lift = (x, back, B) => {                                                 // White jumps into a floor crate, then steps behind it
+        run(100, () => [B(), I(toward(S.p2, x))]);
+        { let f = 0; run(50, () => [B(), I(0, f++ === 0)]); }
+        run(50, () => [B(), I(toward(S.p2, back))]); run(40, () => [B(), I(0)]);
+        run(250, () => [B(), I(loc(S.p2, 1))]);                                      // and slides it along the ceiling to the hatch
+      };
+      run(200, () => [idle, I(loc(S.p2, 1))]); run(80, () => [idle, I(toward(S.p2, 5.5))]);   // tower: White's crate to the block,
+      run(200, () => [I(1), idle]); run(40, () => [I(toward(S.p1, 8.0)), idle]);               // Black's crate under it,
+      { let f = 0; run(50, () => [I(f < 20 ? 1 : 0, f++ === 0), idle]); }
+      { let f = 0; run(50, () => [I(0, f++ === 0), idle]); }                                   // Black bumps the top one down
+      run(60, () => [I(toward(S.p1, 7.5)), idle]); run(40, () => [I(0), idle]);
+      lift(3.45, 2.4, () => idle);                                                   // K3 under the hatch
+      run(200, () => [idle, Wc()]);                                                  // White on c: K3 rises through the hatch
+      run(30, () => [I(toward(S.p1, 8.0)), Wc()]);
+      { let f = 0; run(50, () => [I(f < 25 ? 1 : 0, f++ === 0), Wc()]); }           // Black climbs the tower
+      { let f = 0; run(70, () => [I(cx(S.p1) < 10.5 ? 1 : 0, f++ === 0), Wc()]); }  // and follows it up
+      run(40, () => [Bw(), Wc()]);
+      if (mode === 'early-d') { run(80, () => [I(toward(S.p1, 12.5)), Wc()]); run(80, () => [Bw(), Wc()]); }   // plate d too soon: the tower drops
+      if (mode === 'full-flip') {                                                    // White flips both crates, as in Flip the tower
+        run(120, () => [Bw(), I(toward(S.p2, 8.2))]);
+        for (let k = 0; k < 2; k++) {
+          { let f = 0; run(50, () => [Bw(), I(f < 14 ? loc(S.p2, 1) : 0, f++ === 0)]); }
+          run(40, () => [Bw(), I(toward(S.p2, 8.2))]); run(30, () => [Bw(), I(0)]);
+        }
+      } else {
+        lift(2.45, 1.4, Bw);                                                         // K2 onto the ceiling above the tower
+        run(40, () => [Bw(), I(toward(S.p2, 8.2))]);
+        { let f = 0; run(50, () => [Bw(), I(f < 20 ? loc(S.p2, 1) : 0, f++ === 0)]); }   // White climbs onto K2
+        { let f = 0; run(40, () => [Bw(), I(0, f++ === 0)]); }                            // and drops onto the top crate only
+        run(60, () => [Bw(), I(toward(S.p2, 7.5))]); run(40, () => [Bw(), I(0)]);
+      }
+      if (mode === 'late-c') { run(250, () => [Bw(), Wc()]); run(150, () => [Bw(), I(toward(S.p2, 7.5))]); }   // back on c: the tower floats away
+      run(80, () => [I(toward(S.p1, 12.5)), I(0)]);                                  // Black on d: the bottom crate drops through
+      { let f = 0; run(60, () => [I(toward(S.p1, 12.5)), I(f < 25 ? loc(S.p2, 1) : 0, f++ === 0)]); }                  // White climbs the tower
+      { let f = 0; run(70, () => [I(toward(S.p1, 12.5)), I(cx(S.p2) < 10.5 ? loc(S.p2, 1) : 0, f++ === 0)]); }         // and follows it down
+      halfDown = top(S.p2) >= 9.99 && cx(S.p2) > 9.9;
+      run(150, () => [I(toward(S.p1, 9.5), S.p1.grounded && S.p1.blockedX), I(0)]); // Black onto the hatch
+      { let f = 0; run(50, () => [I(0, f++ === 0), idle]); }                        // bumps K3 down onto it
+      run(50, () => [I(toward(S.p1, 10.6)), idle]); run(40, () => [I(0), idle]);
+      { let f = 0; run(60, () => [I(cx(S.p1) > 9.5 ? -1 : 0, f++ === 0), idle]); } // climbs onto K3
+      { let f = 0; run(70, () => [I(-1, f++ === 0), idle]); }                       // and jumps to his ledge
+      run(150, () => [I(toward(S.p1, 5.5)), idle]);
+      run(150, () => [I(toward(S.p1, 5.5)), I(toward(S.p2, 9.5), S.p2.grounded && S.p2.blockedX)]);   // White under the trapdoor
+      { let f = 0; run(50, () => [I(toward(S.p1, 5.5)), I(0, f++ === 0)]); }                           // lifts his crate up to it
+      run(50, () => [I(toward(S.p1, 5.5)), I(toward(S.p2, 10.6))]); run(40, () => [I(toward(S.p1, 5.5)), I(0)]);
+      { let f = 0; run(60, () => [I(toward(S.p1, 5.5)), I(cx(S.p2) > 9.5 ? loc(S.p2, -1) : 0, f++ === 0)]); }   // climbs onto it
+      { let f = 0; run(70, () => [I(toward(S.p1, 5.5)), I(loc(S.p2, -1), f++ === 0)]); }                         // and jumps to his ledge
+      run(150, () => [I(toward(S.p1, 5.5)), I(toward(S.p2, 5.5))]);
+      return won() && pops() === 0;
+    };
+    const ledgeReach = (who, d) => {                                                 // from the hatch (Black) or the trapdoor (White) with no crate
+      U.loadById('half-flip'); S.events.length = 0;
+      const p = who === 1 ? S.p1 : S.p2;
+      p.x = 9.5 - p.w / 2; p.y = who === 1 ? 5 - p.h : 11; p.vx = p.vy = 0;
+      run(20, () => [I(), I()]);
+      const ready = p.grounded; let got = false, f = 0;
+      run(120, () => { if (who === 1 ? bot(S.p1) <= 2.01 && cx(S.p1) < 9 : top(S.p2) >= 13.99 && cx(S.p2) < 9) got = true;
+        const o = I(f >= d ? loc(p, -1) : 0, f++ === 0); return who === 1 ? [o, I()] : [I(), o]; });
+      return ready ? got : 'setup failed';
+    };
+    const ledgeSweep = who => { const t = [0, 4, 8, 12, 16, 20, 24].map(d => ledgeReach(who, d)); return t.includes('setup failed') ? 'setup failed' : t.includes(true); };
+    out['27 Half flip'] = halfFlip('full');
+    out['27 Half flip: full flip'] = halfFlip('full-flip');
+    out['27 Half flip: full flip still gets White down'] = halfDown;
+    out['27 Half flip: plate d before the half flip'] = halfFlip('early-d');
+    out['27 Half flip: plate c after the half flip'] = halfFlip('late-c');
+    out['27 Half flip: Black reaches his ledge without a crate'] = ledgeSweep(1);
+    out['27 Half flip: White reaches his ledge without a crate'] = ledgeSweep(2);
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -614,11 +688,11 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '17 All together now', '18 Double bonk', '19 Encore', '20 Backbeat', '21 Thread the needle', '22 Pop home', '23 Hover button', '24 Stepping crates', '25 Stack them up', '26 Flip the tower', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
+  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '17 All together now', '18 Double bonk', '19 Encore', '20 Backbeat', '21 Thread the needle', '22 Pop home', '23 Hover button', '24 Stepping crates', '25 Stack them up', '26 Flip the tower', '27 Half flip', '27 Half flip: full flip still gets White down', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
     '11 Your turn to climb', '12 The ladder', '13 Busy doors', '14 The gate', '15 The long way home', '15 long way: crate dropped to Black', '15 long way: crate on plate a', '16 The longer way home', '16 longer way: crate dropped to Black', '16 longer way: crate on plate a',
     '5 stones: Black waits at door', '5 stones: White on button, door open', '12 crossed after climb',
     '14 gate open', '14 gate closed blocks'];
-  const mustFail = ['22 Pop home: back to plate a without popping', '23 Hover button: step off together', '23 Hover: Black alone presses the button', '23 Hover: White alone presses the button', '24 Stepping crates: one stone only', '24 Stepping crates: first crate placed too far', '25 Stack them up: trapdoor opened too early', '25 Stack them up: one crate is enough', '26 Flip the tower: plate d before the flip', '26 Flip the tower: plate c after the flip', '26 Flip the tower: one crate gets Black up', '26 Flip the tower: one crate gets White down', '16 longer way: no teamwork', '21 Thread the needle: Black alone', '18 Double bonk: one jumps alone', '19 Encore: step off together', '20 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '17 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
+  const mustFail = ['22 Pop home: back to plate a without popping', '23 Hover button: step off together', '23 Hover: Black alone presses the button', '23 Hover: White alone presses the button', '24 Stepping crates: one stone only', '24 Stepping crates: first crate placed too far', '25 Stack them up: trapdoor opened too early', '25 Stack them up: one crate is enough', '26 Flip the tower: plate d before the flip', '26 Flip the tower: plate c after the flip', '26 Flip the tower: one crate gets Black up', '26 Flip the tower: one crate gets White down', '27 Half flip: full flip', '27 Half flip: plate d before the half flip', '27 Half flip: plate c after the half flip', '27 Half flip: Black reaches his ledge without a crate', '27 Half flip: White reaches his ledge without a crate', '16 longer way: no teamwork', '21 Thread the needle: Black alone', '18 Double bonk: one jumps alone', '19 Encore: step off together', '20 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '17 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
   for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '17 finale: door window ms', '17 finale: step-off window ms'])

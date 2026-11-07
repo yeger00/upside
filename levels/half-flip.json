@@ -1,0 +1,26 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "half-flip",
+  "name": "Half flip",
+  "author": "yeger00",
+  "notes": "Both players need the same tower, and each also needs a crate on the far side to reach their exit, 3 tiles past the hatch. White sends a crate up through the hatch ahead of Black. Once Black is up, White parks another crate on the ceiling above the tower and flips only the top crate, so the bottom one stays on the trapdoor. When Black opens the trapdoor it drops first, ready for White. A full flip leaves White with nothing to climb.",
+  "map": [
+    "################",
+    "#####X       ###",
+    "#########    ###",
+    "#########    ###",
+    "#########    ###",
+    "#########C  d###",
+    "#c  2 W   ######",
+    "#         ######",
+    "#         ######",
+    "# KK1 K   ######",
+    "#########D   ###",
+    "#########    ###",
+    "#########    ###",
+    "#########    ###",
+    "#####Y       ###",
+    "################"
+  ]
+}
