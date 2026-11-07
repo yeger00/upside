@@ -1,0 +1,26 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "hover-button",
+  "name": "Hover button",
+  "author": "yeger00",
+  "notes": "A plate floats in mid-air where only the foot-to-foot pair can reach it. Pressing it opens a trapdoor and drops the crate into Black's socket, which opens his exit door. Lock high enough (White first) to touch it.",
+  "map": [
+    "################",
+    "#   vvvvvv    Y#",
+    "#          K  ##",
+    "#  1      #A# ##",
+    "####          ##",
+    "#          a  ##",
+    "#             ##",
+    "#             ##",
+    "#             ##",
+    "#             ##",
+    "#             ##",
+    "####         C #",
+    "#  2         C #",
+    "#   ^^^^^^^  CX#",
+    "###########c####",
+    "################"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "pop-home",
+  "name": "Pop home",
+  "author": "yeger00",
+  "notes": "Black drops down to push his crate into the socket (opens White's first door), but plate a is back on his start shelf and he can't climb up. The trick: jump into the thorns on purpose to reappear at the start, then hold a for White.",
+  "map": [
+    "################",
+    "#2   C   A   dY#",
+    "#    C   A     #",
+    "#    C   A     #",
+    "#              #",
+    "#1a            #",
+    "####           #",
+    "#              #",
+    "#              #",
+    "#            D #",
+    "#            D #",
+    "#     K    ^^DX#",
+    "#########c######",
+    "################"
+  ]
+}

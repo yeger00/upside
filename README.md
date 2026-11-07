@@ -67,8 +67,11 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 | 19 | Encore | Double bonk, a long drop with White first through a narrow opening, park over the exits *(drop window ≈ 0.2 s)* |
 | 20 | Backbeat | Like Encore, but Black must go first; finish with On three *(drop window ≈ 0.2 s)* |
 | 21 | Thread the needle | Lock through a 2-row opening; White finishes by falling up behind the shelf onto the ceiling *(window ≈ 0.18 s)* |
+| 22 | Pop home | Black can't climb back to his plate, so he jumps into the thorns on purpose to reappear at the start |
+| 23 | Hover button | A plate in mid-air that only the foot-to-foot pair can touch drops a crate through a trapdoor *(window ≈ 0.23 s)* |
+| 24 | Stepping crates | White parks ceiling crates just past Black's last stone; Black bumps each down into the thorns and steps across |
 
-**Coordination levels** (3, 6, 10, 17) need both players to act at the same moment. The tests measure each one's timing window, meaning how far apart the two players' actions can be and still work, and fail if it drops below 0.25 s. The **hard levels** (18–21) chain several of these moments with no checkpoint in between, and their windows may be as tight as 0.15 s.
+**Coordination levels** (3, 6, 10, 17) need both players to act at the same moment. The tests measure each one's timing window, meaning how far apart the two players' actions can be and still work, and fail if it drops below 0.25 s. The **hard levels** (18–21, 23) chain several of these moments with no checkpoint in between, and their windows may be as tight as 0.15 s.
 
 ## Level files
 

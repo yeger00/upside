@@ -1,0 +1,20 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "stepping-crates",
+  "name": "Stepping crates",
+  "author": "yeger00",
+  "notes": "The thorns are too wide to jump and Black can't reach the ceiling from the floor. Black pushes his crate into the first thorn and stands on it. White hops over the crates on the ceiling and nudges them, one pushed right and one pushed left, so each hangs just past Black's last stone; Black jumps and bumps it down. One spare crate. Black on plate b opens White's door at the end.",
+  "map": [
+    "################",
+    "################",
+    "#2W  W   W   BY#",
+    "#            B #",
+    "#            B #",
+    "#            B #",
+    "#1  K ^^^^^^b X#",
+    "################",
+    "################",
+    "################"
+  ]
+}
