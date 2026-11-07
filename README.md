@@ -70,6 +70,7 @@ Add `#level-<id>` (for example `#level-the-gate`) or `#level5` to the URL to sta
 | 22 | Pop home | Black can't climb back to his plate, so he jumps into the thorns on purpose to reappear at the start |
 | 23 | Hover button | A plate in mid-air that only the foot-to-foot pair can touch drops a crate through a trapdoor *(window ≈ 0.23 s)* |
 | 24 | Stepping crates | White parks ceiling crates just past Black's last stone; Black bumps each down into the thorns and steps across |
+| 25 | Stack them up | Black bumps a white crate down and pushes it under the other one; White repaints it so it rises into a tower, the only spot high enough to jump through the trapdoor to the exit |
 
 **Coordination levels** (3, 6, 10, 17) need both players to act at the same moment. The tests measure each one's timing window, meaning how far apart the two players' actions can be and still work, and fail if it drops below 0.25 s. The **hard levels** (18–21, 23) chain several of these moments with no checkpoint in between, and their windows may be as tight as 0.15 s.
 

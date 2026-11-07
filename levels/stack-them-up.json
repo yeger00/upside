@@ -1,0 +1,20 @@
+{
+  "format": "upside-level",
+  "version": 1,
+  "id": "stack-them-up",
+  "name": "Stack them up",
+  "author": "yeger00",
+  "notes": "White's exit hangs 4 tiles below the ceiling: White needs a tower of both white crates to reach it, but can't stack them alone. Black bumps one down, pushes it under the other, and White jumps onto it so it rises into place. Black holds plate d to open the trapdoor under the tower so White has room to jump; White holds the second plate d under the block so Black can drop through the trapdoor to his exit.",
+  "map": [
+    "################",
+    "#2  W  W  ######",
+    "#         ######",
+    "#         ######",
+    "#1   d    ######",
+    "#########D  d Y#",
+    "#              #",
+    "#              #",
+    "#           X  #",
+    "################"
+  ]
+}

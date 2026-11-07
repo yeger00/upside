@@ -506,6 +506,48 @@ const { startServer } = require('./server');
     out['24 Stepping crates'] = stepping(1.05, true);
     out['24 Stepping crates: one stone only'] = stepping(1.05, false);
     out['24 Stepping crates: first crate placed too far'] = stepping(1.9, true);
+    // 25 Stack them up: White's exit hangs 4 tiles down, and only a tower of both crates is tall enough to jump from
+    const stackUp = (mode, d = 0) => {
+      U.loadById('stack-them-up'); S.events.length = 0;
+      const idle = I(), [W1, W2] = S.crates.slice().sort((a, b) => a.x - b.x);
+      const D = S.L.doors[0], under = () => top(S.p2) > 4.9 && cx(S.p2) > 10.4;
+      const bump = (spot, back) => {
+        run(120, () => [I(toward(S.p1, spot)), idle]);
+        { let f = 0; run(50, () => [I(0, f++ === 0), idle]); }
+        run(50, () => [I(toward(S.p1, back)), idle]); run(40, () => [I(0), idle]);
+      };
+      if (mode === 'one') {                                                          // Black parks one crate on plate d; White tries with the other
+        bump(W2.x + 0.86, W2.x + 1.45);
+        run(200, () => [W2.x > 5.05 ? I(-1) : I(0), idle]);
+        run(300, () => [idle, I(loc(S.p2, 1))]);                                     // W1 slides all the way to the block
+        run(40, () => [idle, I(toward(S.p2, 8.2))]);
+        { let f = 0; run(60, () => [idle, I(f < 25 ? loc(S.p2, 1) : 0, f++ === 0)]); }   // White onto the single crate
+        const ready = D.open && top(S.p2) > 1.9 && top(S.p2) < 2.0;
+        let got = false, f = 0;
+        run(90, () => { if (under()) got = true; return [idle, I(f >= d ? loc(S.p2, 1) : 0, f++ === 0)]; });
+        return ready ? got || under() : 'setup failed';
+      }
+      bump(W2.x + 0.1, W2.x - 0.45);                                                 // Black bumps W2 down onto his walkway
+      run(150, () => [I(1), idle]);                                                  // and pushes it onto the trapdoor, against the block
+      run(40, () => [I(toward(S.p1, 7.0)), idle]);
+      if (mode === 'early') run(80, () => [I(toward(S.p1, 5.5)), idle]);             // Black opens the trapdoor too soon: W2 drops through
+      run(250, () => [idle, I(loc(S.p2, 1))]);                                       // White pushes W1 along the ceiling to the block
+      run(40, () => [idle, I(toward(S.p2, 8.2))]);
+      { let f = 0; run(50, () => [idle, I(f < 14 ? loc(S.p2, 1) : 0, f++ === 0)]); } // White jumps down onto W2: it rises under W1
+      run(40, () => [idle, I(toward(S.p2, 8.2))]); run(40, () => [idle, I(0)]);
+      run(80, () => [I(toward(S.p1, 5.5)), idle]);                                   // Black on plate d: the trapdoor opens
+      { let f = 0; run(60, () => [I(toward(S.p1, 5.5)), I(f < 25 ? loc(S.p2, 1) : 0, f++ === 0)]); }   // White onto the tower
+      { let f = 0; run(70, () => [I(toward(S.p1, 5.5)), I(loc(S.p2, 1), f++ === 0)]); }                // through the trapdoor, under the block
+      run(80, () => [I(toward(S.p1, 5.5)), I(toward(S.p2, 12.5))]);                  // White holds the second plate d
+      run(200, () => [I(toward(S.p1, 9.5)), I(toward(S.p2, 12.5))]);                 // Black drops through the trapdoor
+      run(200, () => [I(toward(S.p1, 12.5)), I(toward(S.p2, 12.5))]);
+      run(150, () => [I(toward(S.p1, 12.5)), I(toward(S.p2, 14.5))]);
+      return won() && pops() === 0;
+    };
+    out['25 Stack them up'] = stackUp('full');
+    out['25 Stack them up: trapdoor opened too early'] = stackUp('early');
+    { const tries = [0, 4, 8, 12, 16, 20, 24].map(d => stackUp('one', d));
+      out['25 Stack them up: one crate is enough'] = tries.includes('setup failed') ? 'setup failed' : tries.includes(true); }
     return out;
   });
   console.log(JSON.stringify(result, null, 1));
@@ -513,11 +555,11 @@ const { startServer } = require('./server');
   await page.waitForTimeout(150);
   await page.screenshot({ path: require('path').join(__dirname, 'gate.png') });
   console.log('errors:', errors);
-  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '17 All together now', '18 Double bonk', '19 Encore', '20 Backbeat', '21 Thread the needle', '22 Pop home', '23 Hover button', '24 Stepping crates', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
+  const mustPass = ['1 Hello', '2 Relay', '3 On three', '6 Bonk the button', '10 Off-beat', '17 All together now', '18 Double bonk', '19 Encore', '20 Backbeat', '21 Thread the needle', '22 Pop home', '23 Hover button', '24 Stepping crates', '25 Stack them up', '4 Special delivery', '5 Stepping stones', '7 Round trip', '7 Round trip: crate on plate c', '8 Swap places', '8 Swap places: locked', '9 Meet in the middle',
     '11 Your turn to climb', '12 The ladder', '13 Busy doors', '14 The gate', '15 The long way home', '15 long way: crate dropped to Black', '15 long way: crate on plate a', '16 The longer way home', '16 longer way: crate dropped to Black', '16 longer way: crate on plate a',
     '5 stones: Black waits at door', '5 stones: White on button, door open', '12 crossed after climb',
     '14 gate open', '14 gate closed blocks'];
-  const mustFail = ['22 Pop home: back to plate a without popping', '23 Hover button: step off together', '23 Hover: Black alone presses the button', '23 Hover: White alone presses the button', '24 Stepping crates: one stone only', '24 Stepping crates: first crate placed too far', '16 longer way: no teamwork', '21 Thread the needle: Black alone', '18 Double bonk: one jumps alone', '19 Encore: step off together', '20 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '17 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
+  const mustFail = ['22 Pop home: back to plate a without popping', '23 Hover button: step off together', '23 Hover: Black alone presses the button', '23 Hover: White alone presses the button', '24 Stepping crates: one stone only', '24 Stepping crates: first crate placed too far', '25 Stack them up: trapdoor opened too early', '25 Stack them up: one crate is enough', '16 longer way: no teamwork', '21 Thread the needle: Black alone', '18 Double bonk: one jumps alone', '19 Encore: step off together', '20 Backbeat: White steps off first', '3 On three: one at a time', '6 Bonk: White not ready', '6 Bonk: standing under the button opens it', '10 Off-beat: both together', '17 finale: park over thorns', '5 solo Black reaches exit', '7 Round trip: no teamwork', '8 Swap places: no teamwork', '11 solo White (no crate)', '13 no teamwork', '15 long way: no teamwork', '15 long way: Black alone reaches exit'];
   const bad = [...mustPass.filter(k => result[k] !== true), ...mustFail.filter(k => result[k] !== false),
     ...(errors.length ? ['page errors'] : [])];
   for (const k of ['3 On three: window ms', '10 Off-beat: window ms', '17 finale: door window ms', '17 finale: step-off window ms'])
